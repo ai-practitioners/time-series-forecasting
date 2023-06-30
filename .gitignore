@@ -1,0 +1,16 @@
+# Environments
+.env
+venv/
+
+# Byte-compiled / optimized / DLL files
+src/__pycache__/
+*.py[cod]
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# OS files
+**/.DS_Store
+
+# data files .csv files from kaggle
+data/
