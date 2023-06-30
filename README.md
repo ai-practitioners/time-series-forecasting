@@ -24,3 +24,4 @@ You should find 5 csv files when you clicked into the link above. As the total f
 │   ├── ...
 └── .gitignore
 ```
+The initial intention was to ingest the csv files into your preferred RDBMS and query the data thereafter, but it seems `sales_train_evaluation.csv`, `sales_train_validation` have too much columns (~1900) for DB to handle. If anyone found a better way please share!
