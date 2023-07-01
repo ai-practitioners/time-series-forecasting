@@ -6,6 +6,6 @@
 1. change to data directory where you want the date to live: `cd data/raw`
 1. in terminal: `kaggle competitions download -c m5-forecasting-accuracy`
 1. in terminal: `unzip m5-forecasting-accuracy.zip`
-1. in terminal: `python convert_csv.py` to import 3 csv files we're going to use for EDA and training into a single database file `forecasting.db` in same location as CSVs. Just to practice our 'SQL-fu'.
+1. in terminal: `python src/convert_csv.py` to import 3 csv files we're going to use for EDA and training into a single database file `forecasting.db` in same location as CSVs. Just to practice our 'SQL-fu'. If your _data path_ is different than `data/raw`, edit the code accordingly.
 
 If just want to use CSV files, above step (9) can be skipped.
