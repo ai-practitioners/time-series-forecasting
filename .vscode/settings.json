@@ -1,0 +1,17 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "172.31.32.1",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "WSL2",
+            "database": "time_series",
+            "username": "ubuntu"
+        }
+    ]
+}
