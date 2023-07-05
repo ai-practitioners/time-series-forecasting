@@ -1,7 +1,7 @@
 WITH CTE_local_holiday (
 	holiday_date
-  , locale
-  , locale_name
+	, locale
+	, locale_name
 ) AS (
 	SELECT DISTINCT
 		local_holiday.date
