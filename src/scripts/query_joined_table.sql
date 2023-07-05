@@ -4,17 +4,17 @@ WITH CTE_local_holiday (
 	, locale_name
 ) AS (
 	SELECT DISTINCT
-		local_holiday.date
-	  , local_holiday.locale
-      , local_holiday.locale_name
+	  local_holiday.date
+	, local_holiday.locale
+    , local_holiday.locale_name
 	FROM holidays_events as local_holiday
 	WHERE locale = 'Local' and transferred = 'False'
 ),
 
 CTE_regional_holiday (
-	holiday_date
-  , locale
-  , locale_name
+	  holiday_date
+	, locale
+	, locale_name
 ) AS (
 	SELECT DISTINCT
 		regional_holiday.date
@@ -25,9 +25,9 @@ CTE_regional_holiday (
 ),
 
 CTE_national_holiday (
-	  holiday_date
-    , locale
-    , locale_name
+		  holiday_date
+		, locale
+		, locale_name
 ) AS (
 	SELECT DISTINCT
 		national_holiday.date
@@ -39,7 +39,7 @@ CTE_national_holiday (
 
 SELECT
 	  tr.*
-    , str.city
+	, str.city
     , str.state
     , str.type
     , str.cluster
