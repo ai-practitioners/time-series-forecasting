@@ -1,5 +1,5 @@
 WITH CTE_local_holiday (
-	holiday_date
+	  holiday_date
 	, locale
 	, locale_name
 ) AS (
