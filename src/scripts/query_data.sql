@@ -1,2 +1,2 @@
 SELECT *
-FROM time_series.oil
+FROM VwDump1
