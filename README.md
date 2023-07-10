@@ -1,14 +1,14 @@
-# Time Series Forecasting
+# Time Series Forecasting - Motivation
+This repository is created to mainly pick up, build and enhance concepts and knowledge surrounding time series forecasting problem statements or projects.
 
-This repository is created mainly to pick up, build and enhance your concepts and knowledge surrounding time series forecasting problem statements or project.
+Anyone is free to participate in the contribution to this repository. The idea is also to learn and network with one another as well.
 
-Anyone is free to participate in the contribution to this repository. The idea is also to learn and network from one another as well.
+Also, the second purpose is to get used to tools which allows collaboration between contributors. An example of such tools is DVC where data versioning, model experiment, CI/CD, etc. is allowed.
 
-# Data Set
-
+# About Dataset
 The data set chosen for this repository comes from Kaggle. Click here for the link to download the [Store Sales - Time Series Forecasting](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data?select=oil.csv) data set.
 
-You should find 7 csv files when you clicked into the link above. I would recommend you to create a folder called `data/raw/` in the root directory of this repository and put the csv files in.
+You should find 7 CSV files when you clicked on the link above. I would recommend you create a folder called `data/raw/` in your root directory and put the CSV files in.
 
 ```
 ├── data
@@ -19,7 +19,7 @@ You should find 7 csv files when you clicked into the link above. I would recomm
 │         ├── stores.csv
 │         ├── test.csv
 │         ├── train.csv
-│         ├── transactions.csv
+│         └── transactions.csv
 ├── README.md
 ├── src
 │   ├── ...
@@ -27,6 +27,32 @@ You should find 7 csv files when you clicked into the link above. I would recomm
 └── .gitignore
 ```
 
-The intention is to ingest the csv files into your preferred RDBMS and query the data thereafter.
+The intention is to ingest the CSV files into your preferred RDBMS and query the data thereafter.
+The initial data set recommended for this repository was the [M5 Forecasting - Accuracy](https://www.kaggle.com/competitions/m5-forecasting-accuracy/data) data set. We decided to switch to this smaller data set as some of us had trouble bringing the data set into our working space due to workspace limitations. If anyone has a solution to this, we welcome you to join us in our conversation tracked in [this commit](https://github.com/ai-practitioners/time-series-forecasting/commit/e542144dfe6fce26b657393c287a6c3dd85b11ea) and [issue #3](https://github.com/ai-practitioners/time-series-forecasting/issues/3).
 
-The inital data set recommneded for this repository was the [M5 Forecasting - Accuracy](https://www.kaggle.com/competitions/m5-forecasting-accuracy/data) data set. We decided to switch to this smaller data set as some of us had troubles bringing the data set into our working space. If anyone has a solution to this, we welcome you to join us in our conversation tracked in [this commit](https://github.com/ai-practitioners/time-series-forecasting/commit/e542144dfe6fce26b657393c287a6c3dd85b11ea) and [issue #3](https://github.com/ai-practitioners/time-series-forecasting/issues/3). 
+# Getting Started and Setup
+To ensure all contributors are working in a similar setup, you may follow the following steps to replicate the initial setup of this repository.
+
+Clone the project into your preferred directory.
+
+```bash
+  git clone https://github.com/ai-practitioners/time-series-forecasting.git
+```
+
+Go to the project directory.
+
+```bash
+  cd my-project
+```
+
+Install `virtualenv` at the root of the project directory.
+
+```bash
+  # install virtualvenv using pip
+  pip install virtualenv
+```
+Create a virtual environment with a Python version of your choice. This repository is using `python3.9.13`
+
+```bash
+  virtualenv venv -p <python-version>
+```
