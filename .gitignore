@@ -13,4 +13,4 @@ src/__pycache__/
 **/.DS_Store
 
 # data files .csv files from kaggle
-data/
+data/raw/
