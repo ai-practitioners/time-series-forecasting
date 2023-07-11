@@ -1,6 +1,6 @@
 USE time_series;
 
-CREATE VIEW VwDump1 AS
+CREATE OR REPLACE VIEW VwDump1 AS
 
 WITH CTE_local_holiday (
 	  holiday_date
