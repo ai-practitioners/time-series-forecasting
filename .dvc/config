@@ -1,0 +1,4 @@
+[core]
+    remote = time-series-remote
+['remote "time-series-remote"']
+    url = gdrive://17fCM3KVJPYRVyKrtGOUOIH8JQv073WS2
