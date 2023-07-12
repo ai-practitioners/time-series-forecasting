@@ -3,8 +3,8 @@ select
 	city, state, cluster, 
 	locale, locale_name, description, transferred,
 	st.`type`, hols.`type` hol_type, 
-	tr.store_nbr, st.store_nbr, 
-	tr.`date`, hols.`date`
+	tr.store_nbr,
+	tr.`date` 
 from
 	train as tr
 left join stores as st
