@@ -171,3 +171,5 @@ data/raw/
 #  log files
 logs/
 
+# ydata reports
+reports/
