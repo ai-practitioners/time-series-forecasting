@@ -3,7 +3,7 @@ This repository is created to mainly pick up, build and enhance concepts and kno
 
 Anyone is free to participate in the contribution to this repository. The idea is also to learn and network with one another as well.
 
-Also, the second purpose is to get used to tools which allows collaboration between contributors. An example of such tools is DVC where data versioning, model experiment, CI/CD, etc. is allowed.
+Also, the second purpose is to get used to tools that allow collaboration between contributors. An example of such tools is DVC where data versioning, model experiment, CI/CD, etc. is allowed.
 
 # About Dataset
 The data set chosen for this repository comes from Kaggle. Click here for the link to download the [Store Sales - Time Series Forecasting](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data?select=oil.csv) data set.
@@ -33,7 +33,7 @@ The initial data set recommended for this repository was the [M5 Forecasting - A
 # Getting Started and Setup
 To ensure all contributors are working in a similar setup, you may follow the following steps to replicate the initial setup of this repository.
 
-Clone the project into your preferred directory.
+Clone the project into your preferred of your local directory.
 
 ```bash
   git clone https://github.com/ai-practitioners/time-series-forecasting.git
@@ -42,16 +42,16 @@ Clone the project into your preferred directory.
 Go to the project directory.
 
 ```bash
-  cd my-project
+  cd time-series-forecasting
 ```
 
-Install `virtualenv` at the root of the project directory.
+Install `virtualenv`.
 
 ```bash
   # install virtualvenv using pip
   pip install virtualenv
 ```
-Create a virtual environment with a Python version of your choice. This repository is using `python3.9.13`
+Create a virtual environment with a Python version of your choice. This repository uses `python3.9.13`.
 
 ```bash
   virtualenv venv -p <python-version>
