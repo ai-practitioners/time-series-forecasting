@@ -2,6 +2,7 @@ import pymysql
 import pandas as pd
 from dotenv import load_dotenv
 import os
+from src.logger import logging
 
 class DataLoader():
     '''
@@ -36,9 +37,11 @@ class DataLoader():
             )
             
             print('[+] Local Connection Successful')
+            logging.info("[+] Local Connection Successful")
             
         except Exception as e:
             print(f'[+] Local Connection Failed: {e}')
+            logging.error(f'Error encountered: {e}', exc_info=True)
             connection = None
 
         return connection
@@ -62,11 +65,12 @@ class DataLoader():
             df = pd.DataFrame(results)
             
             print(f'Successfully retrieved records')
-            
+            logging.info("Successfully retrieved records")
             return df
     
         except Exception as e:
             print(f'Error encountered: {e}')
+            logging.error(f'Error encountered: {e}', exc_info=True)
             
     def query_from_file(self, connection, file_path):
         '''
@@ -90,8 +94,10 @@ class DataLoader():
             df = pd.DataFrame(results)
             
             print(f'Successfully retrieved records')
-            
+            logging.info("Successfully retrieved records")
+
             return df
         
         except Exception as e:
             print(f'Error encountered: {e}')
+            logging.error(f'Error encountered: {e}', exc_info=True)
