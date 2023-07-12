@@ -1,103 +1,61 @@
-import pymysql
+from abc import ABC, abstractmethod
+from dotenv import dotenv_values
+from sqlalchemy import create_engine
 import pandas as pd
-from dotenv import load_dotenv
-import os
-from src.logger import logging
 
-class DataLoader():
+from logger import logging
+
+class DataLoader(ABC):
     '''
-    For loading of dataset from local MySQL DB into the working environment
+      Provide DataLoader interface for documentation purposes.
+      Used for CSVDataLoader and DBDataLoader.
     '''
+    @abstractmethod
+    def load(self):
+        pass
+
+
+class CSVDataLoader(DataLoader):
+    '''
+      Implements load() method with pandas read_csv functionality
+    '''
+    def load(self, file_path="data/raw/stores.csv"):
+        print('Loading CSV data...')
+        return pd.read_csv(file_path)
+
+
+class DBDataLoader(DataLoader):
+    '''
+        OOP-styled code for loading dataset from database.
+        Since queries are read-only, we can use an alternative method
+        to the one from Lesson 02 Notebook, which is easier to read.
+    '''
+
+    config = dotenv_values()
+    logging.info("dotenv loaded into config successfully")
+
+
     def __init__(self):
-        # load environment variables from .env
-        load_dotenv()
-        
-        # extract db secrets
-        self._host = os.getenv('ENDPOINT')
-        self._port = int(os.getenv('PORT'))
-        self._user = os.getenv('USERNAME')
-        self._passwd = os.getenv('PASSWORD')
-        self._dbname = os.getenv('DBNAME')
-        
-        # define type of cursor
-        self._cursorclass = pymysql.cursors.DictCursor
-        
-    def initiate_local_connection(self):
-        '''
-        method that creates a connection to the db
-        '''
-        try:
-            connection = pymysql.connect(
-                host=self._host,
-                port=self._port,
-                user=self._user,
-                passwd=self._passwd,
-                db=self._dbname,
-                cursorclass=self._cursorclass
-            )
-            
-            print('[+] Local Connection Successful')
-            logging.info("[+] Local Connection Successful")
-            
-        except Exception as e:
-            print(f'[+] Local Connection Failed: {e}')
-            logging.error(f'Error encountered: {e}', exc_info=True)
-            connection = None
+        self.database = self._get_database_engine()
+        logging.info("[+] Local Connection Successful")
+        self.query = 'SELECT * FROM stores'
 
-        return connection
-    
-    def query_from_string(self, connection, query):
-        '''
-        method that takes in a string as query, executes the query and return results as pandas DataFrame object
-        '''
-        
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(query)
-                
-            # Connection is not autocommit by default, so we must commit to save changes
-            connection.commit()
-            
-            # Fetch all the records from SQL query output
-            results = cursor.fetchall()
-            
-            # Convert results into pandas dataframe
-            df = pd.DataFrame(results)
-            
-            print(f'Successfully retrieved records')
-            logging.info("Successfully retrieved records")
-            return df
-    
-        except Exception as e:
-            print(f'Error encountered: {e}')
-            logging.error(f'Error encountered: {e}', exc_info=True)
-            
-    def query_from_file(self, connection, file_path):
-        '''
-        method that accepts a .sql file, reads, execute the query within, and return results as pandas DataFrame object
-        '''
-        
-        with open(file_path, 'r') as f:
-            query = f.read()
-            
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(query)
-            
-            # Connection is not autocommit by default, so we must commit to save changes
-            connection.commit()
-            
-            # Fetch all the records from SQL query output
-            results = cursor.fetchall()
-            
-            # Convert results into pandas dataframe
-            df = pd.DataFrame(results)
-            
-            print(f'Successfully retrieved records')
-            logging.info("Successfully retrieved records")
 
-            return df
+    def load(self, query=None):
+        # If custom SQL query not provided, use default query
+        if query is None:
+            query = self.query
+        print('Loading dataset from database...')
         
-        except Exception as e:
-            print(f'Error encountered: {e}')
-            logging.error(f'Error encountered: {e}', exc_info=True)
+        return pd.read_sql(query, self.database, parse_dates='date', chunksize=10000)
+    # (query, self.database, index_col='date', parse_dates='date', chunksize=10000)
+
+
+    def _get_database_engine(self):
+        host = self.config.get('ENDPOINT')
+        port = int(self.config.get('PORT'))
+        user = self.config.get('USERNAME')
+        password = self.config.get('PASSWORD')
+        db = self.config.get('DBNAME')
+
+        return create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{db}')
