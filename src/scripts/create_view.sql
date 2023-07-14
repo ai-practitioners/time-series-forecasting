@@ -59,7 +59,7 @@ LEFT JOIN time_series.transactions AS trans
 LEFT JOIN CTE_local_holiday AS city_holiday
 	ON str.city = city_holiday.locale_name AND tr.date = city_holiday.holiday_date
 LEFT JOIN CTE_regional_holiday AS regional_holiday
-	ON str.city = regional_holiday.locale_name AND tr.date = regional_holiday.holiday_date
+	ON str.state = regional_holiday.locale_name AND tr.date = regional_holiday.holiday_date
 LEFT JOIN CTE_national_holiday AS national_holiday
 	ON tr.date = national_holiday.holiday_date
 ;
