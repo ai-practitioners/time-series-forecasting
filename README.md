@@ -33,26 +33,64 @@ The initial data set recommended for this repository was the [M5 Forecasting - A
 # Getting Started and Setup
 To ensure all contributors are working in a similar setup, you may follow the following steps to replicate the initial setup of this repository.
 
-Clone the project into your preferred of your local directory.
+<b>Clone the project into your preferred of your local directory.</b>
 
 ```bash
   git clone https://github.com/ai-practitioners/time-series-forecasting.git
 ```
 
-Go to the project directory.
+<b>Go to the project directory.</b>
 
 ```bash
   cd time-series-forecasting
 ```
 
-Install `virtualenv`.
+<b>Install `virtualenv`.</b>
 
 ```bash
-  # install virtualvenv using pip
+  # install virtualenv using pip
   pip install virtualenv
 ```
-Create a virtual environment with a Python version of your choice. This repository uses `python3.9.13`.
+
+<b>Create a virtual environment with a Python version of your choice.</b>
+
+This repository uses `python3.9.13`. For simplicity, we use `venv` as the name of the virtual environment in this setup instructions. You can use any name of your choice by replacing the word "venv".
 
 ```bash
   virtualenv venv -p <python-version>
+```
+
+<b>Activate your virtual environment.</b>
+
+```bash
+# if your workstation is running on Windows OS
+source venv/Scripts/activate
+
+# if your workstation is running on Mac OS
+source venv/bin/activate
+```
+To deactivate the virtual environment, simply `deactivate` it.
+```bash
+deactivate
+```
+
+<b>Ensure that venv is selected</b>
+
+After the following command is entered in terminal, you should expect to see the path of python being python of your virtual environment.
+
+```bash
+# Windows OS
+where python
+</path/to/venv/Scripts/python>
+
+# Mac OS
+which python
+</path/to/venv/bin/python>
+```
+
+<b>Add packages into virtual environment.</b>
+
+After activating your virtual environment, you can add libraries to it by using `pip`. Ensure you are in the same directory as your virtual environment, execute the following command in terminal and wait for the installations to complete. 
+```bash
+pip install -r requirements.txt
 ```
