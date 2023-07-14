@@ -11,20 +11,18 @@ The data set chosen for this repository comes from Kaggle. Click here for the li
 You should find 7 CSV files when you clicked on the link above. I would recommend you create a folder called `data/raw/` in your root directory and put the CSV files in.
 
 ```
-├── data
-│    └── raw
-│         ├── holiday_events.csv
-│         ├── oil.csv
-│         ├── sample_submission.csv
-│         ├── stores.csv
-│         ├── test.csv
-│         ├── train.csv
-│         └── transactions.csv
-├── README.md
-├── src
-│   ├── ...
-│   ├── ...
-└── .gitignore
+.
+├── ...
+├── raw
+│   └── data
+│       ├── holiday_events.csv
+│       ├── oil.csv
+│       ├── sample_submission.csv
+│       ├── stores.csv
+│       ├── test.csv
+│       ├── train.csv
+│       └── transactions.csv
+└── ...
 ```
 
 The intention is to ingest the CSV files into your preferred RDBMS and query the data thereafter.
