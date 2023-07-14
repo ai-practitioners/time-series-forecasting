@@ -13,8 +13,8 @@ You should find 7 CSV files when you clicked on the link above. I would recommen
 ```
 .
 ├── ...
-├── raw
-│   └── data
+├── data
+│   └── raw
 │       ├── holiday_events.csv
 │       ├── oil.csv
 │       ├── sample_submission.csv
@@ -31,7 +31,7 @@ The initial data set recommended for this repository was the [M5 Forecasting - A
 # Getting Started and Setup
 To ensure all contributors are working in a similar setup, you may follow the following steps to replicate the initial setup of this repository.
 
-<b>Clone the project into your preferred of your local directory.</b>
+<b>Clone the project into your preferred location in your local directory.</b>
 
 ```bash
   git clone https://github.com/ai-practitioners/time-series-forecasting.git
