@@ -8,7 +8,7 @@ Also, the second purpose is to get used to tools that allow collaboration betwee
 # About Dataset
 The data set chosen for this repository comes from Kaggle. Click here for the link to download the [Store Sales - Time Series Forecasting](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data?select=oil.csv) data set.
 
-You should find 7 CSV files when you clicked on the link above. I would recommend you create a folder called `data/raw/` in your root directory and put the CSV files in.
+You should find 7 CSV files when you clicked on the link above. I would recommend you create a folder called `data/raw/` in the root of your project directory and put the CSV files in.
 
 ```
 .
@@ -31,26 +31,26 @@ The initial data set recommended for this repository was the [M5 Forecasting - A
 # Getting Started and Setup
 To ensure all contributors are working in a similar setup, you may follow the following steps to replicate the initial setup of this repository.
 
-<b>Clone the project into your preferred location in your local directory.</b>
+**Clone the project into your preferred location in your local directory.**
 
 ```bash
   git clone https://github.com/ai-practitioners/time-series-forecasting.git
 ```
 
-<b>Go to the project directory.</b>
+**Go to the project directory.**
 
 ```bash
   cd time-series-forecasting
 ```
 
-<b>Install `virtualenv`.</b>
+**Install `virtualenv`.**
 
 ```bash
   # install virtualenv using pip
   pip install virtualenv
 ```
 
-<b>Create a virtual environment with a Python version of your choice.</b>
+**Create a virtual environment with a Python version of your choice.**
 
 This repository uses `python3.9.13`. For simplicity, we use `venv` as the name of the virtual environment in this setup instructions. You can use any name of your choice by replacing the word "venv".
 
@@ -58,7 +58,7 @@ This repository uses `python3.9.13`. For simplicity, we use `venv` as the name o
   virtualenv venv -p <python-version>
 ```
 
-<b>Activate your virtual environment.</b>
+**Activate your virtual environment.**
 
 ```bash
 # if your workstation is running on Windows OS
@@ -72,7 +72,7 @@ To deactivate the virtual environment, simply `deactivate` it.
 deactivate
 ```
 
-<b>Ensure that venv is selected</b>
+**Ensure that venv is selected.**
 
 After the following command is entered in terminal, you should expect to see the path of python being python of your virtual environment.
 
@@ -86,9 +86,9 @@ which python
 </path/to/venv/bin/python>
 ```
 
-<b>Add packages into virtual environment.</b>
+**Add packages into virtual environment.**
 
-After activating your virtual environment, you can add libraries to it by using `pip`. Ensure you are in the same directory as your virtual environment, execute the following command in terminal and wait for the installations to complete. 
+After activating your virtual environment, you can add libraries to it by using `pip`. Ensure you are in the same directory as your virtual environment, execute the following command in the terminal and wait for the installations to complete. 
 ```bash
 pip install -r requirements.txt
 ```
