@@ -92,3 +92,24 @@ After activating your virtual environment, you can add libraries to it by using 
 ```bash
 pip install -r requirements.txt
 ```
+
+# Database and Environment Variables
+This repository has its way of setting up a database for learners to extract the data set. The following steps attempt to mimic how enterprises store data. However, for this learning project, we try to develop our data pipeline architecture in a way that is zero cost yet not compromising project collaborations.
+
+We established some principles for the architecture:
+ - Single source of truth.
+ - Data versioning.
+ - Replicability. 
+
+The tools needed to set up the database follows the table below. You will need to have a [Google account](https://accounts.google.com/signup/v2/createaccount?flowName=GlifWebSignIn&flowEntry=SignUp) for this setup.
+| Tool | Purpose |
+| :--- | :--- |
+| [MySQL Workbench Community Server](https://www.mysql.com/) | Collaborator's local database |
+| [Data Version Control](https://dvc.org/) | Data versioning |
+| [Google Drive](https://www.google.com/intl/en_sg/drive/) | Cloud storage of meta files for usage with DVC |
+
+**Local database setup using MySQL Workbench**
+
+1. [Install MySQL Workbench](https://dev.mysql.com/doc/workbench/en/wb-installing.html) if you have not done so. You will be required to set a password during the installation. Please have this password recorded or saved as you will need it later.
+2. Launch MySQL Workbench and [create a new schema (database)](https://dev.mysql.com/doc/workbench/en/workbench-faq.html#faq-workbench-create-database). In this learning project, the name of the database is `time_series`.
+3. Now, our database needs tables. These tables and their data come from the 7 CSV files from Kaggle. Using [Table Data Import Wizard](https://dev.mysql.com/doc/workbench/en/wb-admin-export-import-table.html), upload all the CSV files. `train.csv` contains more than 3 million rows, so using the wizard will not be efficient. This learning repository provides a script to programmatically import `train.csv` into `time_series` database. The script can be found at this location of the repository `src/scripts/import_csv_to_local_db.sql`. Run the script on a new query tab.
