@@ -111,5 +111,33 @@ The tools needed to set up the database follows the table below. You will need t
 **Local database setup using MySQL Workbench**
 
 1. [Install MySQL Workbench](https://dev.mysql.com/doc/workbench/en/wb-installing.html) if you have not done so. You will be required to set a password during the installation. Please have this password recorded or saved as you will need it later.
+
 2. Launch MySQL Workbench and [create a new schema (database)](https://dev.mysql.com/doc/workbench/en/workbench-faq.html#faq-workbench-create-database). In this learning project, the name of the database is `time_series`.
-3. Now, our database needs tables. These tables and their data come from the 7 CSV files from Kaggle. Using [Table Data Import Wizard](https://dev.mysql.com/doc/workbench/en/wb-admin-export-import-table.html), upload all the CSV files. `train.csv` contains more than 3 million rows, so using the wizard will not be efficient. This learning repository provides a script to programmatically import `train.csv` into `time_series` database. The script can be found at this location of the repository `src/scripts/import_csv_to_local_db.sql`. Run the script on a new query tab.
+
+3. Now, our database needs tables. These tables and their data come from the 7 CSV files from Kaggle. Using [Table Data Import Wizard](https://dev.mysql.com/doc/workbench/en/wb-admin-export-import-table.html), upload all the CSV files.
+
+4. `train.csv` contains more than 3 million rows, so using the wizard will not be efficient. This learning repository provides a script to programmatically import `train.csv` into `time_series` database. The script can be found at this location of the repository `src/scripts/import_csv_to_local_db.sql`. Execute the script on a new query tab. Credit to [this question](https://stackoverflow.com/questions/14127529/import-data-in-mysql-from-a-csv-file-using-load-data-infile) in stackoverflow. 
+
+When you run the script for the first time, you might encounter the following error which means the settings of local_infile system variable is 0 (or turned off).
+
+```{error}
+Error code 2068: file requested rejected due to restrictions on access with root user
+```
+
+To get through the error, you will have to change a parameter called `OPT_LOCAL_FILE`. There are 2 ways to do this.
+
+Method 1: Use MySQL Workbench interface by going through these steps.This method is being tracked [here](https://bugs.mysql.com/bug.php?id=91872).
+
+* From the menu: Database -> Manage Connections -> Go to Advanced sub-tab -> in the 'Others:' box add in the line `OPT_LOCAL_INFILE=1`
+
+Method 2: Execute the following statement on a query tab to configure this setting. This method is being tracked [here](https://bugs.mysql.com/bug.php?id=91872).
+ ```sql
+SET GLOBAL local_infile = ON;
+```
+
+To check if the parameter has changed, run the following statement.
+
+```sql
+SHOW GLOBAL VARIABLES LIKE 'local_infile';
+```
+The workbench should return the result in the result grid that the Value is ON for Variable_name local_infile. You can now execute the query code block for `LOAD DATA LOCAL INFILE <absolute/path/to/train.csv> ...`
