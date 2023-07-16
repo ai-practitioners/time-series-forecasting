@@ -112,6 +112,7 @@ The tools needed to set up the database follows the table below. You will need t
 This part of the setup will be split into 2 sections. In section 1, we will look at how to set up local database and tables in MySQL Workbench. In section 2, we will look at DVC as part of data versioning and how it serves the purpose of a single source of truth. Since this repository has already been initialized as a DVC project, new collaborators can skip section 2 but we detail the steps anyway.
 
 **Section 1: Local database setup using MySQL Workbench**
+---
 
 1. [Install MySQL Workbench](https://dev.mysql.com/doc/workbench/en/wb-installing.html) if you have not done so. You will be required to set a password during the installation. Please have this password recorded or saved as you will need it later.
 
@@ -154,6 +155,7 @@ SHOW GLOBAL VARIABLES LIKE 'local_infile';
 The workbench should return the result in the result grid that the Value is ON for Variable_name local_infile. You can now execute the query code block for `LOAD DATA LOCAL INFILE <absolute/path/to/train.csv> ...`
 
 **Section 2: Data Version Control (DVC)**
+---
 
 [Data Version Control (DVC)](https://dvc.org/) is an open-source tool that enables data versioning, seamlessly integrating with Git. It simplifies the tracking of data changes, ensuring easy management and reproducibility of datasets in data science projects.
 
