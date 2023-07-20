@@ -7,4 +7,5 @@ dvc==3.4.0
 tqdm==4.65.0
 ydata-profiling==4.3.1
 sqlalchemy==1.4.40
-mysql-connector-python==8.0.33 
+# mysqlclient==2.2.0
+mysql-connector-python
