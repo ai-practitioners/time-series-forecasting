@@ -1,13 +1,11 @@
+from sqlalchemy import create_engine
 from abc import ABC, abstractmethod
 from dotenv import dotenv_values
 import polars as pl
 import pandas as pd
-from sqlalchemy import create_engine
-import mysql.connector
-import MySQLdb
 import connectorx as cx
-
 from logger import logging
+
 
 class DataLoader(ABC):
     '''
@@ -43,12 +41,7 @@ class DBDataLoader(DataLoader):
         self.database = self._get_database_engine()
         logging.info("[+] Local Connection Successful")
         
-        self.query = 'SELECT * FROM quito_frm_view'
-
-
-        # self.connection_uri=f'mysql+pymysql://{user}:{password}@{host}/{db}'
-        # self.connection_uri=f'mysql+mysqldb://{user}:{password}@{host}/{db}'
-        
+        self.query = 'SELECT * FROM quito'
 
 
     def load(self, query=None):
@@ -72,15 +65,9 @@ class DBDataLoader(DataLoader):
         password = self.config.get('PASSWORD')
         host = self.config.get('ENDPOINT')
         db = self.config.get('DBNAME')
-
-        # planetscale
-        # user = self.config.get("ps_username")
-        # password = self.config.get("ps_password")
-        # host = self.config.get("ps_host")
-        # db = self.config.get("ps_database")
         
         # using connectorx
-        return f'mysql://mysql+mysqldb://{user}:{password}@{host}/{db}'
+        # return f'mysql://mysql+mysqldb://{user}:{password}@{host}/{db}'
         # "mysql://{user}:{pw}@{host}:{port}/{db}".format(user=DB_USERNAME,
                                                     #    pw=DB_PASSWORD,
                                                     #    host=DB_HOST,
@@ -92,4 +79,32 @@ class DBDataLoader(DataLoader):
         # using mysql.connector
         # return mysql.connector.connect(f'mysql+mysqldb://{user}:{password}@{host}/{db}')
         # using sqlalchemy
-        # return create_engine(f'mysql+mysqldb://{user}:{password}@{host}/{db}')
+        return create_engine(f'mysql+mysqldb://{user}:{password}@{host}/{db}')
+
+    def get_connection_string(self, env, library):
+        if env == "local":
+            
+            USERNAME = self.config.get('USERNAME')
+            PASSWORD = self.config.get('PASSWORD')
+            ENDPOINT = self.config.get('ENDPOINT')
+            DBNAME = self.config.get('DBNAME')
+
+            if library == "connectorx":
+                return "mysql://"+USERNAME+":"+PASSWORD+"@"+ENDPOINT+":3306"+"/"+DBNAME
+                # "mysql://"+{user}+":"+{password}+"@"+{host}:3306+"/"+{db}"
+            elif library == "sqlalchemy":
+                return "mysql+mysqlconnector://"+USERNAME+":"+PASSWORD+"@"+ENDPOINT+":3306"+"/"+DBNAME
+            
+        elif env == "remote":
+
+            PS_USERNAME = self.config.get('PS_USERNAME')
+            PS_PASSWORD = self.config.get('PS_PASSWORD')
+            PS_HOST = self.config.get('PS_HOST')
+            PS_DATABASE = self.config.get('PS_DATABASE')
+
+            if library == "connectorx":
+                return "mysql://"+PS_USERNAME+":"+PS_PASSWORD+"@"+PS_HOST+":3306"+"/"+PS_DATABASE
+            elif library == "sqlalchemy":
+                return "mysql+mysqlconnector://"+PS_USERNAME+":"+PS_PASSWORD+"@"+PS_HOST+":3306"+"/"+PS_DATABASE
+        else:
+            return None
