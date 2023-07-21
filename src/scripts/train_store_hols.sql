@@ -1,3 +1,6 @@
+USE time_series;
+
+CREATE OR REPLACE VIEW train_store_hols AS
 select
 	id, tr.family, tr.sales, tr.onpromotion, 
 	city, state, cluster, 
@@ -17,8 +20,7 @@ left join holidays_events hols
     on tr.`date` = hols.`date`
 left join transactions txn 
     on tr.`date` = txn.`date` AND tr.store_nbr = txn.store_nbr
-	
--- where
--- 	year(tr.`date`) between 2013 and 2015
+where
+    year(tr.`date`) between 2013 and 2015
 -- constraint where rowcount (1,972,674)
 -- no constraint, full rowcount (3,054,348)
