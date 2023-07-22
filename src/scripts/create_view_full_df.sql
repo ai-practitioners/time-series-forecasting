@@ -27,9 +27,9 @@ CREATE OR REPLACE VIEW full_df AS
             LEFT JOIN
         stores AS st ON tr.store_nbr = st.store_nbr
             LEFT JOIN
-        holidays_events hols ON tr.`date` = hols.`date`
-            LEFT JOIN
         transactions txn ON tr.`date` = txn.`date`
             AND tr.store_nbr = txn.store_nbr
             LEFT JOIN
-        oil o ON tr.`date` = o.`date`;
+        oil o ON tr.`date` = o.`date`
+        holidays_events hols ON tr.`date` = hols.`date`
+            LEFT JOIN;

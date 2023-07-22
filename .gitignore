@@ -167,6 +167,9 @@ cython_debug/
 # project-specific
 #  data files .csv files from kaggle
 data/raw/
+data/
+references/
+catboost_info/
 
 #  log files
 logs/
