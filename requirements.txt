@@ -1,5 +1,5 @@
 numpy==1.23.0
-pandas==2.0.3  # wati's 1.5.3
+pandas==1.5.3
 kaggle==1.5.15
 pymysql==1.1.0
 python-dotenv==1.0.0
@@ -11,3 +11,4 @@ mysql-connector-python==8.0.33
 tqdm==4.65.0
 connectorx==0.3.1
 pycaret==3.0.4
+polars==0.18.9
