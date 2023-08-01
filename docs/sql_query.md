@@ -44,18 +44,18 @@ The following query checks for rows and columns per table (views included) withi
 ```
 
 ```{code-cell}
-SELECT 
-	rows_table.TABLE_NAME,
+SELECT
+    rows_table.TABLE_NAME,
     rows_table.TABLE_ROWS,
     columns_sq.TABLE_COLUMNS
 FROM INFORMATION_SCHEMA.TABLES AS rows_table
 LEFT JOIN (
-	SELECT
-		table_name,
-		COUNT(*) AS TABLE_COLUMNS
-	FROM INFORMATION_SCHEMA.COLUMNS
-	WHERE TABLE_SCHEMA = 'time_series'
-	GROUP BY table_name
+    SELECT
+        table_name,
+        COUNT(*) AS TABLE_COLUMNS
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = 'time_series'
+    GROUP BY table_name
 ) AS columns_sq
 ON rows_table.TABLE_NAME = columns_sq.TABLE_NAME
 WHERE TABLE_SCHEMA = 'time_series';
