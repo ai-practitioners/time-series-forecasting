@@ -13,5 +13,10 @@
             "database": "time_series",
             "username": "ubuntu"
         }
+    ],
+    "cSpell.words": [
+        "ipykernel",
+        "jupytext",
+        "kernelspec"
     ]
 }

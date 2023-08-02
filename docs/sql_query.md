@@ -39,14 +39,11 @@ The 5 main files used in our analysis are the following csv files which are loca
 
 Let's first take a quick look at the size of tables.
 
-```{admonition} Query explanation
-The following query checks for rows and columns per table (views included) within the time_series database.
-```
+:::{admonition} Query explanation
+:class: tip
 
-:::{tip}
-Let's give readers a helpful hint!
+The following query checks for rows and columns per table (views included) within the time_series database. The screenshot following to the code block is the result.
 :::
-
 
 ```{code-cell}
 SELECT
@@ -64,4 +61,8 @@ LEFT JOIN (
 ) AS columns_sq
 ON rows_table.TABLE_NAME = columns_sq.TABLE_NAME
 WHERE TABLE_SCHEMA = 'time_series';
+```
+```{figure} ./docs/img/dataset_rows_columns.png
+:height: 150px
+:name: All tables rows and columns
 ```
