@@ -39,30 +39,22 @@ The 5 main files used in our analysis are the following csv files which are loca
 
 Let's first take a quick look at the size of tables.
 
-:::{admonition} Query explanation
-:class: tip
-
-The following query checks for rows and columns per table (views included) within the time_series database. The screenshot following to the code block is the result.
-:::
-
 ```{code-cell}
-SELECT
-    rows_table.TABLE_NAME,
-    rows_table.TABLE_ROWS,
-    columns_sq.TABLE_COLUMNS
-FROM INFORMATION_SCHEMA.TABLES AS rows_table
-LEFT JOIN (
-    SELECT
-        table_name,
-        COUNT(*) AS TABLE_COLUMNS
-    FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = 'time_series'
-    GROUP BY table_name
-) AS columns_sq
-ON rows_table.TABLE_NAME = columns_sq.TABLE_NAME
-WHERE TABLE_SCHEMA = 'time_series';
+-- Replace table name to check size of each table
+SELECT COUNT(*)
+FROM holidays_events;
+
+SELECT COUNT(*) 
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'time_series' AND table_name = 'holidays_events';
 ```
-```{figure} ./docs/img/dataset_rows_columns.png
-:height: 150px
-:name: All tables rows and columns
-```
+
+| Table name (In database) | Rows x Columns
+| :--- | :---
+| holiday_events | 350 x 6
+| oil | 1218 x 2
+| stores | 54 x 5
+| train | 3000887 x 6
+| transactions | 83488 x 3
+
+As train table contains the most number of rows, consider it as the main table for the rest of the analysis.
