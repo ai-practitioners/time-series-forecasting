@@ -43,6 +43,11 @@ Let's first take a quick look at the size of tables.
 The following query checks for rows and columns per table (views included) within the time_series database.
 ```
 
+:::{tip}
+Let's give readers a helpful hint!
+:::
+
+
 ```{code-cell}
 SELECT
     rows_table.TABLE_NAME,
