@@ -83,6 +83,6 @@ GROUP BY city;
 
 Join `train` and `store` tables with `store_nbr` being the common column. We only join `city` instead of `state` as city is on a more granular level and one column is sufficient for now in this analysis.
 
-![city_timeline](docs/img/city_timeline.png)
+![city_timeline](img/city_timeline.png)
 
 Results from this analysis: Each city has the same timeline range from 2013-01-01 to 2017-08-15. But this does not guarantee that all cities will have equal number of time points (observations).
