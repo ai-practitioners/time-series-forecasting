@@ -34,7 +34,7 @@ The 5 main files used in our analysis are the following csv files which are loca
 
 
 | File name | Table name (In database) | Table name (In query)
-| :--- | :--- | :---
+| :--- | :---: | :---
 | holiday_events.csv | holiday_events | `hols`
 | oil.csv | oil | `o`
 | stores.csv | stores | `st`
@@ -58,7 +58,7 @@ WHERE TABLE_SCHEMA = 'time_series' AND table_name = 'holidays_events';
 ```
 
 | Table name (In database) | Rows x Columns
-| :--- | :---
+| :---: | :---
 | holiday_events | 350 x 6
 | oil | 1218 x 2
 | stores | 54 x 5
@@ -67,22 +67,50 @@ WHERE TABLE_SCHEMA = 'time_series' AND table_name = 'holidays_events';
 
 As train table contains the most number of rows, consider it as the fact table and the other tables as dimensions tables.
 
-### Timeline of each cities
+### Timeline of cities
 Analyzing the length of each cities' timeline can give us a rough idea of how distributed each city time series between each other.
 
 ```{code-cell}
 SELECT
-	MIN(tr.date) AS city_start_date,
+  MIN(tr.date) AS city_start_date,
   MAX(tr.date) AS city_end_date,
-  city
+  st.city
 FROM train AS tr
 LEFT JOIN stores AS st
   ON tr.store_nbr = st.store_nbr
-GROUP BY city;
+GROUP BY st.city;
 ```
 
 Join `train` and `store` tables with `store_nbr` being the common column. We only join `city` instead of `state` as city is on a more granular level and one column is sufficient for now in this analysis.
 
 ![city_timeline](img/city_timeline.png)
 
-Results from this analysis: Each city has the same timeline range from 2013-01-01 to 2017-08-15. But this does not guarantee that all cities will have equal number of time points (observations).
+Results from this analysis: Each city has the same timeline range from 2013-01-01 to 2017-08-15. But this does not guarantee that all cities will have equal number of time points (observations) so let's also check that.
+
+### Time points of cities
+```{code-cell}
+WITH CityObCounts AS (
+  SELECT
+    COUNT(*) AS time_points,
+    st.city,
+    st.store_nbr
+  FROM train AS tr
+  LEFT JOIN stores AS st
+    ON tr.store_nbr = st.store_nbr
+  GROUP BY st.city, st.store_nbr
+)
+
+SELECT
+  ROW_NUMBER() OVER () AS row_num,
+  time_points,
+  city,
+  store_nbr
+FROM CityObCounts
+ORDER BY city, store_nbr;
+```
+
+| Cities time points page 1 | Cities time points page 2
+:-------------------------:|:-------------------------:
+![Cities time points page 1](img/cities_time_points_page_1.png) | ![Cities time points page 2](img/cities_time_points_page_2.png)
+
+Looks like all cities are having the same number of time points. It is noted that Quito store number 1 has 1 less observation. During this high level analysis, it is not significant right now.
