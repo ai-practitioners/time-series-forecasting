@@ -34,7 +34,7 @@ The 5 main files used in our analysis are the following csv files which are loca
 
 
 | File name | Table name (In database) | Table name (In query)
-| :--- | :---: | :---
+| :--- | :---: | :---:
 | holiday_events.csv | holiday_events | `hols`
 | oil.csv | oil | `o`
 | stores.csv | stores | `st`
@@ -70,15 +70,26 @@ As train table contains the most number of rows, consider it as the fact table a
 ### Timeline of cities
 Analyzing the length of each cities' timeline can give us a rough idea of how distributed each city time series between each other.
 
+Why prioritize analysis on cities? Because city is on a more granular level. By inspecting on city level, we ensure we do not miss out hidden patterns as compared to analysis done on state and national level.
+
 ```{code-cell}
+WITH CityStartEnd AS (
+  SELECT
+    MIN(tr.date) AS city_start_date,
+    MAX(tr.date) AS city_end_date,
+    st.city
+  FROM train AS tr
+  LEFT JOIN stores AS st
+    ON tr.store_nbr = st.store_nbr
+  GROUP BY st.city
+)
+
 SELECT
-  MIN(tr.date) AS city_start_date,
-  MAX(tr.date) AS city_end_date,
-  st.city
-FROM train AS tr
-LEFT JOIN stores AS st
-  ON tr.store_nbr = st.store_nbr
-GROUP BY st.city;
+  ROW_NUMBER() OVER (ORDER BY city) AS row_num,
+  city_start_date,
+  city_end_date,
+  city
+FROM CityStartEnd;
 ```
 
 Join `train` and `store` tables with `store_nbr` being the common column. We only join `city` instead of `state` as city is on a more granular level and one column is sufficient for now in this analysis.
@@ -114,3 +125,37 @@ ORDER BY city, store_nbr;
 ![Cities time points page 1](img/cities_time_points_page_1.png) | ![Cities time points page 2](img/cities_time_points_page_2.png)
 
 Looks like all cities are having the same number of time points. It is noted that Quito store number 1 has 1 less observation. During this high level analysis, it is not significant right now.
+
+### Holidays
+The Kaggle competition has provided [some noteworthy pointers about the holidays](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). So it is better that we do some analysis on the holidays of each city, state and nation. 
+
+Due to how the Ecuador government decides the celebrated dates of the holiday, it poses some challenge in building the query. We need to be careful when merging the columns. Many times during the merging, we realized duplicated dates in `holidays_events` caused the query result to explode with additional rows with null values. The duplicated dates (`date` column) from `holidays_events` as the right table (recall that `train` is the main table, hence `train` is the left table) have resulted in a many-to-one relationship with `date` column in `train`.
+
+Also, we were given holidays for year 2012 when the `train` starts from 2013.
+
+Let's first count the number of holidays from 2013 to 2017 for each city and state, and also the nation itself.
+
+```{code-cell}
+WITH HolidayCounts AS (
+  SELECT
+    COUNT(hols.date) AS num_of_holidays,
+    hols.locale_name,
+    hols.locale,
+    st.state
+  FROM holidays_events AS hols
+  LEFT JOIN stores AS st
+    ON hols.locale_name = st.city
+  GROUP BY hols.locale_name, hols.locale, st.state
+)
+
+SELECT
+  ROW_NUMBER() OVER () AS row_num,
+  num_of_holidays,
+  locale,
+  locale_name,
+  state
+FROM HolidayCounts
+ORDER BY locale, locale_name;
+```
+
+![count_holidays](img/count_holidays.png)
