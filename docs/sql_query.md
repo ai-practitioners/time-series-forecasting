@@ -47,7 +47,7 @@ The 5 main files used in our analysis are the following csv files which are loca
 
 Let's first take a quick look at the size of tables.
 
-```{code-cell}
+```sql
 -- Replace table name to check size of each table
 SELECT COUNT(*)
 FROM holidays_events;
@@ -72,7 +72,7 @@ Analyzing the length of each cities' timeline can give us a rough idea of how di
 
 Why prioritize analysis on cities? Because city is on a more granular level. By inspecting on city level, we ensure we do not miss out hidden patterns as compared to analysis done on state and national level.
 
-```{code-cell}
+```sql
 WITH CityStartEnd AS (
   SELECT
     MIN(tr.date) AS city_start_date,
@@ -99,7 +99,7 @@ Join `train` and `store` tables with `store_nbr` being the common column. We onl
 Results from this analysis: Each city has the same timeline range from 2013-01-01 to 2017-08-15. But this does not guarantee that all cities will have equal number of time points (observations) so let's also check that.
 
 ### Time points of cities
-```{code-cell}
+```sql
 WITH CityObCounts AS (
   SELECT
     COUNT(*) AS time_points,
@@ -126,6 +126,35 @@ ORDER BY city, store_nbr;
 
 Looks like all cities are having the same number of time points. It is noted that Quito store number 1 has 1 less observation. During this high level analysis, it is not significant right now.
 
+### City/State hierarchy in Ecuador
+Considering Ecuador being the country as root node in the hierarchy. This section explores a high level analysis on the dataset for the following.
+
+  - Ecuador (Root)
+    - Number of states in the country.
+      - Number of cities within a state.
+        - Number of stores with a city.
+
+```sql
+WITH CityStoreCount AS (
+SELECT
+	state,
+    COUNT(DISTINCT city) as city_count,
+    COUNT(*) as store_count
+FROM stores
+GROUP BY state
+)
+
+SELECT
+	ROW_NUMBER() OVER () AS row_num,
+    state,
+    city_count,
+    store_count
+FROM CityStoreCount
+ORDER by state;
+```
+
+![state_city_store_count](img/state_city_store_count.png)
+
 ### Holidays
 The Kaggle competition has provided [some noteworthy pointers about the holidays](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). So it is better that we do some analysis on the holidays of each city, state and nation. 
 
@@ -133,9 +162,10 @@ Due to how the Ecuador government decides the celebrated dates of the holiday, i
 
 Also, we were given holidays for year 2012 when the `train` starts from 2013.
 
-Let's first count the number of holidays from 2013 to 2017 for each city and state, and also the nation itself.
+Let's first count the number of days from 2012 to 2017 for each city and state, and also the nation itself, with the inclusion of the following conditions:
+1. Days where `transferred = True` does not count as an actual celebrated day. 
 
-```{code-cell}
+```sql
 WITH HolidayCounts AS (
   SELECT
     COUNT(hols.date) AS num_of_holidays,
