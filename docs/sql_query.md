@@ -112,12 +112,11 @@ WITH CityObCounts AS (
 )
 
 SELECT
-  ROW_NUMBER() OVER () AS row_num,
+  ROW_NUMBER() OVER (ORDER BY city, store_nbr) AS row_num,
   time_points,
   city,
   store_nbr
-FROM CityObCounts
-ORDER BY city, store_nbr;
+FROM CityObCounts;
 ```
 
 | Cities time points page 1 | Cities time points page 2
@@ -145,12 +144,11 @@ GROUP BY state
 )
 
 SELECT
-  ROW_NUMBER() OVER () AS row_num,
+  ROW_NUMBER() OVER (ORDER by state) AS row_num,
   state,
   city_count,
   store_count
-FROM CityStoreCount
-ORDER by state;
+FROM CityStoreCount;
 ```
 
 ![state_city_store_count](img/state_city_store_count_1.png)
@@ -166,30 +164,27 @@ Due to how the Ecuador government decides the celebrated dates of the holiday, i
 
 Also, we were given holidays for year 2012 when the `train` starts from 2013.
 
-Let's first count the number of days from 2012 to 2017 for each city and state, and also the nation itself, with the inclusion of the following conditions:
-1. Days where `transferred = True` does not count as an actual celebrated day. 
+Let's first count the number of days from 2012 to 2017 for each city and state, and also the nation itself, with the exclusion of the following conditions (exclude those days from the query results):
+1. Days where `transferred = True` does not count as an actual celebrated day.
+2. Type of day where `type = Work Day` does not count as a celebration day.
 
 ```sql
-WITH HolidayCounts AS (
+WITH HolidayCount AS (
   SELECT
-    COUNT(hols.date) AS num_of_holidays,
-    hols.locale_name,
-    hols.locale,
-    st.state
-  FROM holidays_events AS hols
-  LEFT JOIN stores AS st
-    ON hols.locale_name = st.city
-  GROUP BY hols.locale_name, hols.locale, st.state
+    COUNT(DISTINCT date) AS num_hols,
+    locale_name,
+    locale
+FROM holidays_events
+WHERE transferred = 'False' AND type != 'Work Day'
+GROUP BY locale_name, locale
 )
 
 SELECT
-  ROW_NUMBER() OVER () AS row_num,
-  num_of_holidays,
+  ROW_NUMBER() OVER (ORDER BY locale, locale_name) AS row_num,
   locale,
   locale_name,
-  state
-FROM HolidayCounts
-ORDER BY locale, locale_name;
+  num_hols
+FROM HolidayCount;
 ```
 
-![count_holidays](img/count_holidays.png)
+![count_holiday](img/count_holiday.png)
