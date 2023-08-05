@@ -127,7 +127,7 @@ ORDER BY city, store_nbr;
 Looks like all cities are having the same number of time points. It is noted that Quito store number 1 has 1 less observation. During this high level analysis, it is not significant right now.
 
 ### City/State hierarchy in Ecuador
-Considering Ecuador being the country as root node in the hierarchy. This section explores a high level analysis on the dataset for the following.
+Considering Ecuador being the country as root node in the hierarchy. This sub-section explores a high level analysis on the dataset for the following.
 
   - Ecuador (Root)
     - Number of states in the country.
@@ -153,7 +153,11 @@ FROM CityStoreCount
 ORDER by state;
 ```
 
-![state_city_store_count](img/state_city_store_count.png)
+![state_city_store_count](img/state_city_store_count_1.png)
+
+Most cities have around 1 to 3 stores. Pichincha have the most store count due to Quito, Ecuador's capital, being one of it's city. If we also drill deeper into store count for individual cities, we see that Quito does has the most store count.
+
+![state_city_store_count](img/state_city_store_count_2.png)
 
 ### Holidays
 The Kaggle competition has provided [some noteworthy pointers about the holidays](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). So it is better that we do some analysis on the holidays of each city, state and nation. 
