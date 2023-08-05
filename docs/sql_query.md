@@ -188,3 +188,5 @@ FROM HolidayCount;
 ```
 
 ![count_holiday](img/count_holiday.png)
+
+Not all cities and states have holidays. As analyzed in the previous sub-section, there are 16 states and 22 cities. But now, we see that only 4 states and 19 cities have holidays.
