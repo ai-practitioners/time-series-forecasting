@@ -137,18 +137,18 @@ Considering Ecuador being the country as root node in the hierarchy. This sectio
 ```sql
 WITH CityStoreCount AS (
 SELECT
-	state,
-    COUNT(DISTINCT city) as city_count,
-    COUNT(*) as store_count
+  state,
+  COUNT(DISTINCT city) as city_count,
+  COUNT(*) as store_count
 FROM stores
 GROUP BY state
 )
 
 SELECT
-	ROW_NUMBER() OVER () AS row_num,
-    state,
-    city_count,
-    store_count
+  ROW_NUMBER() OVER () AS row_num,
+  state,
+  city_count,
+  store_count
 FROM CityStoreCount
 ORDER by state;
 ```
