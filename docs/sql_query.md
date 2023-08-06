@@ -47,6 +47,10 @@ The 5 main files used in our analysis are the following csv files which are loca
 
 Let's first take a quick look at the size of tables.
 
+````{admonition} Query Explanation
+
+````
+
 ```sql
 -- Replace table name to check size of each table
 SELECT COUNT(*)
@@ -71,6 +75,10 @@ As train table contains the most number of rows, consider it as the fact table a
 Analyzing the length of each cities' timeline can give us a rough idea of how distributed each city time series between each other.
 
 Why prioritize analysis on cities? Because city is on a more granular level. By inspecting on city level, we ensure we do not miss out hidden patterns as compared to analysis done on state and national level.
+
+```{admonition} Query Explanation
+
+````
 
 ```sql
 WITH CityStartEnd AS (
@@ -99,6 +107,11 @@ Join `train` and `store` tables with `store_nbr` being the common column. We onl
 Results from this analysis: Each city has the same timeline range from 2013-01-01 to 2017-08-15. But this does not guarantee that all cities will have equal number of time points (observations) so let's also check that.
 
 ### Time points of cities
+
+```{admonition} Query Explanation
+
+````
+
 ```sql
 WITH CityObCounts AS (
   SELECT
@@ -133,6 +146,10 @@ Considering Ecuador being the country as root node in the hierarchy. This sub-se
       - Number of cities within a state.
         - Number of stores with a city.
 
+```{admonition} Query Explanation
+
+````
+
 ```sql
 WITH CityStoreCount AS (
 SELECT
@@ -155,6 +172,10 @@ FROM CityStoreCount;
 
 Most cities have around 1 to 3 stores. Pichincha have the most store count due to Quito, Ecuador's capital, being one of it's city. If we also drill deeper into store count for individual cities, we see that Quito does has the most store count.
 
+```{admonition} Query Explanation
+
+````
+
 ![state_city_store_count](img/state_city_store_count_2.png)
 
 ### Holidays
@@ -167,6 +188,10 @@ Also, we were given holidays for year 2012 when the `train` starts from 2013.
 Let's first count the number of days from 2012 to 2017 for each city and state, and also the nation itself, with the exclusion of the following conditions (exclude those days from the query results):
 1. Days where `transferred = True` does not count as an actual celebrated day.
 2. Type of day where `type = Work Day` does not count as a celebration day.
+
+```{admonition} Query Explanation
+
+````
 
 ```sql
 WITH HolidayCount AS (
