@@ -48,7 +48,7 @@ The 5 main files used in our analysis are the following csv files which are loca
 Let's first take a quick look at the size of tables.
 
 ````{admonition} Query Explanation
-
+Insert explanation
 ````
 
 ```sql
