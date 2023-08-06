@@ -18,6 +18,7 @@
         "dataframe",
         "ipykernel",
         "jupytext",
+        "Kaggle",
         "kernelspec",
         "subquery"
     ]

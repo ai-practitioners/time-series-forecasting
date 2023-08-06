@@ -49,10 +49,6 @@ The 5 main files used in our analysis are the following csv files which are loca
 
 Let's first take a quick look at the size of tables.
 
-````{admonition} Query Explanation
-Insert explanation
-````
-
 ```sql
 -- Replace table name to check size of each table
 SELECT COUNT(*)
@@ -149,12 +145,17 @@ FROM CityObCounts;
 Looks like all cities are having the same number of time points. It is noted that Quito store number 1 has 1 less observation. During this high level analysis, it is not significant right now.
 
 ### City/State hierarchy in Ecuador
-Considering Ecuador being the country as root node in the hierarchy. This sub-section explores a high level analysis on the dataset for the following.
+Considering Ecuador being the country as root node in the hierarchy. This sub-section explores a high level analysis on the dataset for the following hierarchy relationship. Ecuador is the country so it is the root of the hierarchy.
 
-  - Ecuador (Root)
-    - Number of states in the country.
-      - Number of cities within a state.
-        - Number of stores with a city.
+<div align="center">
+
+```mermaid
+flowchart TD
+    A(Ecuador) --> B(No. of states)
+    B --> C(No. of cities)
+    C --> D(No. of stores)
+```
+</div>
 
 ```{admonition} Query Explanation
 
@@ -234,3 +235,8 @@ FROM HolidayCount;
 </div>
 
 Not all cities and states have holidays. As analyzed in the previous sub-section, there are 16 states and 22 cities. But now, we see that only 4 states and 19 cities have holidays.
+
+# First merge for the final query
+
+In this section, we explored the merging of columns between `train` and `holidays_events` tables. We want to have information of all holidays because these information may be related to the sales of products in `train`. Before we can do the first merge, we need a common identifying column because both `train` and `holidays_events` table do not have a common column. Hence, we use the `stores` table.
+
