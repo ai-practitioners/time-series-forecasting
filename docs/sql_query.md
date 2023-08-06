@@ -32,14 +32,16 @@ Environment: localhost
 
 The 5 main files used in our analysis are the following csv files which are locally uploaded using MySQL Workbench. Therein these csv files are located in `time_series` database. We also use the file names as name of individual tables and simple abbreviations in our query to be straightforward.
 
+<div align="center">
 
-| File name | Table name (In database) | Table name (In query)
-| :--- | :---: | :---:
-| holiday_events.csv | holiday_events | `hols`
-| oil.csv | oil | `o`
-| stores.csv | stores | `st`
-| train.csv | train | `tr`
-| transactions.csv | transactions | `txn`
+| File name | Table name (In database) | Table name (In query) |
+| :--- | :---: | :---: |
+| holiday_events.csv | holiday_events | `hols` |
+| oil.csv | oil | `o` |
+| stores.csv | stores | `st` |
+| train.csv | train | `tr` |
+| transactions.csv | transactions | `txn` |
+</div>
 
 ## More about the dataset
 
@@ -61,6 +63,8 @@ FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = 'time_series' AND table_name = 'holidays_events';
 ```
 
+<div align="center">
+
 | Table name (In database) | Rows x Columns
 | :---: | :---
 | holiday_events | 350 x 6
@@ -68,6 +72,7 @@ WHERE TABLE_SCHEMA = 'time_series' AND table_name = 'holidays_events';
 | stores | 54 x 5
 | train | **3000887 x 6**
 | transactions | 83488 x 3
+</div>
 
 As train table contains the most number of rows, consider it as the fact table and the other tables as dimensions tables.
 
@@ -102,7 +107,10 @@ FROM CityStartEnd;
 
 Join `train` and `store` tables with `store_nbr` being the common column. We only join `city` instead of `state` as city is on a more granular level and one column is sufficient for now in this analysis.
 
+<div align="center">
+
 ![city_timeline](img/city_timeline.png)
+</div>
 
 Results from this analysis: Each city has the same timeline range from 2013-01-01 to 2017-08-15. But this does not guarantee that all cities will have equal number of time points (observations) so let's also check that.
 
@@ -131,10 +139,12 @@ SELECT
   store_nbr
 FROM CityObCounts;
 ```
+<div align="center">
 
 | Cities time points page 1 | Cities time points page 2
 :-------------------------:|:-------------------------:
 ![Cities time points page 1](img/cities_time_points_page_1.png) | ![Cities time points page 2](img/cities_time_points_page_2.png)
+</div>
 
 Looks like all cities are having the same number of time points. It is noted that Quito store number 1 has 1 less observation. During this high level analysis, it is not significant right now.
 
@@ -168,7 +178,10 @@ SELECT
 FROM CityStoreCount;
 ```
 
+<div align="center">
+
 ![state_city_store_count](img/state_city_store_count_1.png)
+</div>
 
 Most cities have around 1 to 3 stores. Pichincha have the most store count due to Quito, Ecuador's capital, being one of it's city. If we also drill deeper into store count for individual cities, we see that Quito does has the most store count.
 
@@ -176,7 +189,10 @@ Most cities have around 1 to 3 stores. Pichincha have the most store count due t
 
 ````
 
+<div align="center">
+
 ![state_city_store_count](img/state_city_store_count_2.png)
+</div>
 
 ### Holidays
 The Kaggle competition has provided [some noteworthy pointers about the holidays](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). So it is better that we do some analysis on the holidays of each city, state and nation. 
@@ -212,6 +228,9 @@ SELECT
 FROM HolidayCount;
 ```
 
+<div align="center">
+
 ![count_holiday](img/count_holiday.png)
+</div>
 
 Not all cities and states have holidays. As analyzed in the previous sub-section, there are 16 states and 22 cities. But now, we see that only 4 states and 19 cities have holidays.
