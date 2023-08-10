@@ -208,7 +208,9 @@ Let's first count the number of days from 2012 to 2017 for each city and state, 
 3. Include `date` which are between `2013-01-01` - `2017-08-15`. This will align with the date range from `train`.
 
 ```{note}
-Without knowing the number of days of holiday for each city first will not allow us to validate the next part of SQL join is done correctly. That is why in the earlier part, we analysis for each city the number of days of holiday.
+Without knowing the number of days of holiday for each city first will not allow us to validate the next part of SQL join is done correctly. That is why in the earlier part, we analyzed for each city and state, their number of days of holiday.
+
+This is an important step for the first merge for the final query as we have a source of truth to validate our workings.
 ```
 
 ```sql
@@ -316,6 +318,7 @@ SELECT
 
 - We validate if this second LEFT JOIN is done correctly by doing a comparison with an earlier analysis on holiday of city, state and country. We want to check if the count of holiday dates are the same.
 - To do this, wrap the query into a subquery again, filter `city_hols = Yes` and group the rows by name of city.
+- As we see from the table comparison table below, the number of holidays are the same.
 
 ```sql
 SELECT
@@ -351,3 +354,52 @@ GROUP BY city
 :-------------------------:|:-------------------------:
 ![CTE_HolidayCount](img/count_holiday.png) | ![subquery2](img/validate_left_join_2.png)
 </div>
+
+- Now moving on to states. To do this, we are able to take the same subquery, copy and use it for the next SQL LEFT JOIN.
+- However, this will unnecessarily lengthen the query. What we can do is to use SQL CTE, making the query shorter and more readable.
+
+````{warning}
+<b>BUT</b> if we were to built a CTE of common holidays and continue with the next SQL LEFT JOIN for states, we would expect a result where dates, in reality with no holidays, were given holidays. This happens when the name of city and state are the same (E.g. Loja which is both city and state name).
+
+The query result below comes after we transform `subquery_c` into a useable CTE named `CommonHolidays` and went ahead with the next SQL LEFT JOIN from the same CTE.
+
+```sql
+WITH CommonHolidays AS (
+  SELECT
+    date,
+    locale,
+    locale_name,
+    transferred
+  FROM holidays_events
+  WHERE type != 'Work Day' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  GROUP BY date, locale, locale_name, transferred
+)
+SELECT
+  COUNT(DISTINCT date) AS state_hols_count,
+  state
+FROM (
+  SELECT
+    tr.*,
+    st.city,
+    st.state,
+    IF(ch_city.transferred IS NULL, 'No', 'Yes') as city_hols,
+    IF(ch_state.transferred IS NULL, 'No', 'Yes') as state_hols
+  FROM train AS tr
+  LEFT JOIN stores AS st
+    ON tr.store_nbr = st.store_nbr
+  LEFT JOIN CommonHolidays AS ch_city
+    ON tr.date = ch_city.date AND st.city = ch_city.locale_name
+  LEFT JOIN CommonHolidays AS ch_state
+    ON tr.date = ch_state.date AND st.state = ch_state.locale_name
+) subquery
+WHERE state_hols = 'Yes'
+GROUP BY state;
+```
+
+<div align="center">
+
+![state_holiday_wrong](img/state_holiday_wrong.png)
+</div>
+
+By validating with CTE `HolidayCount` we noticed 2 more states (Loja and Esmeraldas) were "given" holidays mistakenly.
+````
