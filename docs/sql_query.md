@@ -202,7 +202,7 @@ Due to how the Ecuador government decides the celebrated dates of the holiday, i
 
 Also, we were given holidays for year 2012 when the `train` starts from 2013.
 
-Let's first count the number of days from 2012 to 2017 for each city and state, and also the nation itself, with the exclusion of the following conditions (exclude those days from the query results):
+Let's first count the number of days from 2012 to 2017 for each city and state, and also the Ecuador herself, with consideration of the following conditions (exclude those days from the query results):
 1. Days where `transferred = True` does not count as an actual celebrated day.
 2. Type of day where `type = Work Day` does not count as a celebration day.
 3. Include `date` which are between `2013-01-01` - `2017-08-15`. This will align with the date range from `train`.
@@ -210,7 +210,7 @@ Let's first count the number of days from 2012 to 2017 for each city and state, 
 ```{note}
 Without knowing the number of days of holiday for each city first will not allow us to validate the next part of SQL join is done correctly. That is why in the earlier part, we analyzed for each city and state, their number of days of holiday.
 
-This is an important step for the first merge for the final query as we have a source of truth to validate our workings.
+This is an important step for the first merge for the final query as we have a source of truth to validate our workings.****
 ```
 
 ```sql
@@ -239,7 +239,7 @@ FROM HolidayCount;
 
 Not all cities and states have holidays. As analyzed in the previous sub-section, there are 16 states and 22 cities. But now, we see that only 4 states and 19 cities have holidays.
 
-# First merge for the final query
+# First merge (Holiday)
 
 In this section, we explored the merging of columns between `train` and `holidays_events` tables. We want to have information of all holidays because these information may be related to the sales of products in `train`. Before we can do the first merge, we need a common identifying column because both `train` and `holidays_events` table do not have a common column.
 
@@ -263,22 +263,29 @@ LEFT JOIN time_series.stores AS st
 </div>
 
 - Now, we have `city` column in `train`. We are ready to join `date` column from `holidays_events` so that we know how daily sales of cities' store are affected by holidays.
-- We start with a query which tells us all holiday dates for cities only. We take the same query from CTE `HolidayCount` and from `holidays_events` include a new condition to filter city rows.
+- We start with a separate query which tells us all holiday dates for cities only. We take the same query from CTE `HolidayCount` and from `holidays_events` include a new condition to filter city rows (`locale = 'Local'`).
 
 ```sql
 SELECT
   date,
   locale_name,
-  transferred
+  GROUP_CONCAT(DISTINCT type) AS type
 FROM holidays_events
 WHERE type != 'Work Day' AND transferred = 'False' AND locale = 'Local' AND date BETWEEN '2013-01-01' AND '2017-08-15'
-GROUP BY date, locale_name, transferred;
+GROUP BY date, locale_name;
 ```
 
 ```{attention}
 Notice now we have the unique, this makes a one-to-many relationship of `date` columns between `train` and the query below.
 
 This was an important step for the next part of the SQL join because there were a lot of times we found ourselves with explosion of rows with NULL values.
+
+`GROUP_CONCAT(DISTINCT type) AS types` is written because on 2016-07-24, for city Guayaquil, there seems to be a repeated holiday on the same date. If this repeated date is not rectified, it will also cause explosion of rows.
+
+<div align="center">
+
+![guayaquil_repeat_dates](img/guayaquil_repeat_dates.png)
+</div>
 ```
 
 <div align="center">
@@ -295,7 +302,8 @@ SELECT
   tr.*,
   st.city,
   st.state,
-  IF(subquery_c.transferred IS NULL, 'No', 'Yes') as city_hols
+  subquery_c.types,
+  IF(subquery_c.types IS NULL, 'No', 'Yes') as city_hols
   FROM train as tr
   LEFT JOIN stores as st
     ON tr.store_nbr = st.store_nbr
@@ -303,10 +311,10 @@ SELECT
       SELECT
         date,
         locale_name,
-        transferred
+        GROUP_CONCAT(DISTINCT type) AS type
       FROM holidays_events
       WHERE locale = 'Local' AND type != 'Work Day' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
-      GROUP BY date, locale_name, transferred
+      GROUP BY date, locale_name
   ) subquery_c
     ON tr.date = subquery_c.date AND st.city = subquery_c.locale_name;
 ```
@@ -318,7 +326,7 @@ SELECT
 
 - We validate if this second LEFT JOIN is done correctly by doing a comparison with an earlier analysis on holiday of city, state and country. We want to check if the count of holiday dates are the same.
 - To do this, wrap the query into a subquery again, filter `city_hols = Yes` and group the rows by name of city.
-- As we see from the table comparison table below, the number of holidays are the same.
+- As we see from the table comparison table below (the query below returns results on the right column), the number of holidays for all cities are the same.
 
 ```sql
 SELECT
@@ -329,7 +337,8 @@ FROM (
     tr.*,
     st.city,
     st.state,
-    IF(subquery_c.transferred IS NULL, 'No', 'Yes') as city_hols
+    subquery_c.type,
+    IF(subquery_c.type IS NULL, 'No', 'Yes') as city_hols
   FROM train as tr
   LEFT JOIN stores as st
     ON tr.store_nbr = st.store_nbr
@@ -337,10 +346,10 @@ FROM (
       SELECT
         date,
         locale_name,
-        transferred
+        GROUP_CONCAT(DISTINCT type) AS type
       FROM holidays_events
       WHERE locale = 'Local' AND type != 'Work Day' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
-      GROUP BY date, locale_name, transferred
+      GROUP BY date, locale_name
   ) subquery_c
     ON tr.date = subquery_c.date AND st.city = subquery_c.locale_name
 ) subquery2
@@ -350,7 +359,7 @@ GROUP BY city
 
 <div align="center">
 
-| CTE `HolidayCount` | `subquery2`
+| CTE `HolidayCount` | City Holidays
 :-------------------------:|:-------------------------:
 ![CTE_HolidayCount](img/count_holiday.png) | ![subquery2](img/validate_left_join_2.png)
 </div>
@@ -361,19 +370,19 @@ GROUP BY city
 ````{warning}
 <b>BUT</b> if we were to built a CTE of common holidays and continue with the next SQL LEFT JOIN for states, we would expect a result where dates, in reality with no holidays, were given holidays. This happens when the name of city and state are the same (E.g. Loja which is both city and state name).
 
-The query result below comes after we transform `subquery_c` into a useable CTE named `CommonHolidays` and went ahead with the next SQL LEFT JOIN from the same CTE.
+The query result below comes after we transform `subquery_c` into a reuseable CTE named `CommonHolidays` and went ahead with the next SQL LEFT JOIN from the same CTE. Note that in `CommonHolidays` we do not have a filter condition for `locale = 'Local'` anymore and also different grouping.
 
 ```sql
 WITH CommonHolidays AS (
   SELECT
     date,
-    locale,
     locale_name,
-    transferred
+    GROUP_CONCAT(DISTINCT type) AS type
   FROM holidays_events
   WHERE type != 'Work Day' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
-  GROUP BY date, locale, locale_name, transferred
+  GROUP BY date, locale_name
 )
+
 SELECT
   COUNT(DISTINCT date) AS state_hols_count,
   state
@@ -382,8 +391,10 @@ FROM (
     tr.*,
     st.city,
     st.state,
-    IF(ch_city.transferred IS NULL, 'No', 'Yes') as city_hols,
-    IF(ch_state.transferred IS NULL, 'No', 'Yes') as state_hols
+    ch_city.type AS city_hols_type,
+    IF(ch_city.type IS NULL, 'No', 'Yes') as city_hols,
+    ch_state.type AS state_hols_type,
+    IF(ch_state.type IS NULL, 'No', 'Yes') as state_hols
   FROM train AS tr
   LEFT JOIN stores AS st
     ON tr.store_nbr = st.store_nbr
@@ -403,3 +414,126 @@ GROUP BY state;
 
 By validating with CTE `HolidayCount` we noticed 2 more states (Loja and Esmeraldas) were "given" holidays mistakenly.
 ````
+
+- The workaround will be to either revert back to using subquery or create a second SQL CTE for state (a temporary result set with only states holiday).
+- In order to retain query maintainability and readability, we proceeded with the latter.
+- As we see from the table comparison table below (the query below returns results on the right column), the number of holidays for all states are the same.
+- Also note that CTE `StateHolidays` do not require `GROUP_CONCAT` function as holidays for state do not have duplicated dates unlike city holidays.
+
+```sql
+SELECT
+  COUNT(DISTINCT date) AS state_hols_count,
+  state
+FROM (
+  WITH CityHolidays AS (
+    SELECT
+      date,
+      locale_name,
+      GROUP_CONCAT(DISTINCT type) AS type
+    FROM holidays_events
+    WHERE type != 'Work Day' AND locale = 'Local' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+    GROUP BY date, locale_name
+  ),
+  
+  StateHolidays AS (
+    SELECT
+      date,
+      locale_name,
+      type
+    FROM holidays_events
+    WHERE type != 'Work Day' and locale = 'Regional' and transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+    GROUP BY date, locale_name, type
+  )
+  
+  SELECT
+    tr.*,
+    st.city,
+    st.state,
+    c_hols.type AS city_hols_type,
+    IF(c_hols.type IS NULL, 'No', 'Yes') as city_hols,
+    s_hols.type AS state_hols_type,
+    IF(s_hols.type IS NULL, 'No', 'Yes') as state_hols
+  FROM train AS tr
+  LEFT JOIN stores AS st
+    ON tr.store_nbr = st.store_nbr
+  LEFT JOIN CityHolidays AS c_hols
+    ON tr.date = c_hols.date AND st.city = c_hols.locale_name
+  LEFT JOIN StateHolidays AS s_hols
+    ON tr.date = s_hols.date AND st.state = s_hols.locale_name
+) subquery
+WHERE state_hols = 'Yes'
+GROUP BY state;
+```
+
+<div align="center">
+
+| CTE `HolidayCount` | State Holidays
+:-------------------------:|:-------------------------:
+![CTE_HolidayCount](img/count_holiday.png) | ![subquery](img/validate_left_join_3.png)
+</div>
+
+- The last SQL LEFT JOIN for this section will be getting all holiday dates for Ecuador.
+- We also validate the number of country holidays at the same time.
+  
+```sql
+SELECT COUNT(DISTINCT date) AS country_hols_count
+FROM (
+  WITH CityHolidays AS (
+    SELECT
+    date,
+    locale_name,
+    GROUP_CONCAT(DISTINCT type) AS type
+  FROM holidays_events
+  WHERE type != 'Work Day' AND locale = 'Local' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  GROUP BY date, locale_name
+  ),
+  
+  StateHolidays AS (
+    SELECT  
+      date,
+      locale_name,
+      type
+    FROM holidays_events
+    WHERE type != 'Work Day' and locale = 'Regional' and transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+    GROUP BY date, locale_name, type
+    ),
+    
+  NationHolidays AS (
+    SELECT
+      date,
+      locale_name,
+      type
+    FROM holidays_events
+    WHERE type != 'Work Day' and locale = 'National' and transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+    GROUP BY date, locale_name, type
+  )
+  
+  SELECT
+    tr.*,
+    st.city,
+    st.state,
+    c_hols.type AS city_hols_type,
+    IF(c_hols.type IS NULL, 'No', 'Yes') as city_hols,
+    s_hols.type AS state_hols_type,
+    IF(s_hols.type IS NULL, 'No', 'Yes') as state_hols,
+    n_hols.type AS nation_hols_type,
+    IF(n_hols.type IS NULL, 'No', 'Yes') as nation_hols
+  FROM train AS tr
+  LEFT JOIN stores AS st
+    ON tr.store_nbr = st.store_nbr
+  LEFT JOIN CityHolidays AS c_hols
+    ON tr.date = c_hols.date AND st.city = c_hols.locale_name
+  LEFT JOIN StateHolidays AS s_hols
+    ON tr.date = s_hols.date AND st.state = s_hols.locale_name
+  LEFT JOIN NationHolidays AS n_hols
+    ON tr.date = n_hols.date
+) subquery
+WHERE nation_hols = 'Yes';
+```
+
+<div align="center">
+
+| CTE `HolidayCount` | Country Holidays
+:-------------------------:|:-------------------------:
+![CTE_HolidayCount](img/count_holiday.png) | ![subquery](img/validate_left_join_4.png)
+</div>
