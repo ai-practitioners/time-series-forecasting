@@ -239,9 +239,9 @@ FROM HolidayCount;
 
 Not all cities and states have holidays. As analyzed in the previous sub-section, there are 16 states and 22 cities. But now, we see that only 4 states and 19 cities have holidays.
 
-# First merge (Holiday)
+# First merge (City & States)
 
-In this section, we explored the merging of columns between `train` and `holidays_events` tables. We want to have information of all holidays because these information may be related to the sales of products in `train`. Before we can do the first merge, we need a common identifying column because both `train` and `holidays_events` table do not have a common column.
+We explored the merging of columns between `train` and `holidays_events` tables. We want to have information of all holidays because these information may be related to the sales of products in `train`. In order to do so, we need a common identifying column because both `train` and `holidays_events` table do not have a common column.
 
 - First, we can make use of `store_nbr` column from `stores` table.
 - We do a LEFT JOIN on both `city` and `state` columns into `train`. Because in `holidays_events` table, there is `locale_name` column which contains name of cities and states. 
@@ -262,8 +262,11 @@ LEFT JOIN time_series.stores AS st
 ![left_join_1](img/left_join_1.png)
 </div>
 
-- Now, we have `city` column in `train`. We are ready to join `date` column from `holidays_events` so that we know how daily sales of cities' store are affected by holidays.
+# Second merge (City Holidays)
+
+  Now, we have `city` column in `train`. We are ready to join `date` column from `holidays_events` so that we know how daily sales of cities' store are affected by holidays.
 - We start with a separate query which tells us all holiday dates for cities only. We take the same query from CTE `HolidayCount` and from `holidays_events` include a new condition to filter city rows (`locale = 'Local'`).
+- The query below will return unique date, this makes a one-to-many relationship of `date` columns with `train` table.
 
 ```sql
 SELECT
@@ -275,12 +278,15 @@ WHERE type != 'Work Day' AND transferred = 'False' AND locale = 'Local' AND date
 GROUP BY date, locale_name;
 ```
 
+<div align="center">
+
+![city_holidays](img/city_holidays.png)
+</div>
+
 ```{attention}
-Notice now we have the unique, this makes a one-to-many relationship of `date` columns between `train` and the query below.
+This was an important step in the beginning because there were a lot of times we found ourselves with explosion of rows with NULL values. The explosion of rows were caused by duplicated dates from `holiday_events` table.
 
-This was an important step for the next part of the SQL join because there were a lot of times we found ourselves with explosion of rows with NULL values.
-
-`GROUP_CONCAT(DISTINCT type) AS types` is written because on 2016-07-24, for city Guayaquil, there seems to be a repeated holiday on the same date. If this repeated date is not rectified, it will also cause explosion of rows.
+`GROUP_CONCAT(DISTINCT type) AS types` is written because on 2016-07-24, for city Guayaquil, there seems to be a repeated holiday on the same date. If this repeated date is not removed, it will also cause explosion of rows.
 
 <div align="center">
 
@@ -288,12 +294,7 @@ This was an important step for the next part of the SQL join because there were 
 </div>
 ```
 
-<div align="center">
-
-![city_holidays](img/city_holidays.png)
-</div>
-
-- For this second part of SQL LEFT join, we take the previous query and put it as a subquery, calling it `subquery_c`.
+Now moving on to the actual second merge, we take the previous query and put it as a subquery, calling it `subquery_c`.
 - We join on 2 sets of matching columns - date and city name columns from `train` and `subquery_c`.
 - Where there is a match on the 2 sets of matching columns from both table, temporary return value from `transferred` column from `subquery_c`, and rename if as `Yes`. If there is no match, indicating there is no holiday on that day of the city, `NULL` will be returned, and rename it as `No`.
 
@@ -364,13 +365,14 @@ GROUP BY city
 ![CTE_HolidayCount](img/count_holiday.png) | ![subquery2](img/validate_left_join_2.png)
 </div>
 
-- Now moving on to states. To do this, we are able to take the same subquery, copy and use it for the next SQL LEFT JOIN.
-- However, this will unnecessarily lengthen the query. What we can do is to use SQL CTE, making the query shorter and more readable.
+# Third merge (State Holidays)
+
+Next, we explore on joining state holidays. To do this, we are able to take the same subquery from the second merge. However, this will unnecessarily lengthen the query. What we can do is to use SQL CTE, making the query shorter and more readable.
 
 ````{warning}
-<b>BUT</b> if we were to built a CTE of common holidays and continue with the next SQL LEFT JOIN for states, we would expect a result where dates, in reality with no holidays, were given holidays. This happens when the name of city and state are the same (E.g. Loja which is both city and state name).
+<b>BUT</b> if we were to built a CTE of common holidays and continue with the next SQL LEFT JOIN for states, we would expect a result in days, where in reality is not a holiday, were mistakenly given holidays. This happens when the name of city and state are the same (E.g. Loja which is both city and state name).
 
-The query result below comes after we transform `subquery_c` into a reuseable CTE named `CommonHolidays` and went ahead with the next SQL LEFT JOIN from the same CTE. Note that in `CommonHolidays` we do not have a filter condition for `locale = 'Local'` anymore and also different grouping.
+The query below comes after we modify `subquery_c` into a reuseable CTE named `CommonHolidays` and went ahead with a SQL LEFT JOIN. Note that in `CommonHolidays` we do not have a filter condition for `locale = 'Local'` anymore and also different grouping because `CommonHolidays` is suppose to contain all holidays for city, states and country.
 
 ```sql
 WITH CommonHolidays AS (
@@ -417,7 +419,7 @@ By validating with CTE `HolidayCount` we noticed 2 more states (Loja and Esmeral
 
 - The workaround will be to either revert back to using subquery or create a second SQL CTE for state (a temporary result set with only states holiday).
 - In order to retain query maintainability and readability, we proceeded with the latter.
-- As we see from the table comparison table below (the query below returns results on the right column), the number of holidays for all states are the same.
+- As we see from the table comparison table below (the query below returns results on the right column), the number of holidays for all states are now the same.
 - Also note that CTE `StateHolidays` do not require `GROUP_CONCAT` function as holidays for state do not have duplicated dates unlike city holidays.
 
 ```sql
@@ -472,24 +474,73 @@ GROUP BY state;
 ![CTE_HolidayCount](img/count_holiday.png) | ![subquery](img/validate_left_join_3.png)
 </div>
 
-- The last SQL LEFT JOIN for this section will be getting all holiday dates for Ecuador.
-- We also validate the number of country holidays at the same time.
-  
+# Fourth merge (Country Holidays)
+
+The last SQL LEFT JOIN for this section will be getting all holiday dates for Ecuador. This merge is also quite tricky because there are also duplicated dates. And the way that the duplicated dates are handled differently as we saw from Second merge (City Holidays).
+
+- We write the query below to quickly check if there are any duplicated dates.
+- Indeed there are 4 duplicated dates.
+
+```sql
+SELECT
+  date,
+  COUNT(*) AS count_occurrence
+FROM time_series.holidays_events
+WHERE type != 'Work Day' AND locale = 'National' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+GROUP BY date
+HAVING COUNT(*) > 1;
+```
+
+<div align="center">
+
+![count_duplicateddates_country](img/count_duplicateddates_country.png)
+</div>
+
+To deal with duplicated dates for country holidays, we first explored how we can filter out the duplicates in the CTE which we want to use during the fourth merge.
+
+- For each unique row defined by date, assign a row number (`rn`).
+- The row number restarts for each new date. Where duplicate dates occur, the row number increases.
+
+```sql
+SELECT
+  date,
+  locale_name,
+  type,
+  rn
+FROM (
+  SELECT
+    date,
+    locale_name,
+    type,
+    ROW_NUMBER() OVER(PARTITION BY date ORDER BY type) AS rn
+  FROM holidays_events
+  WHERE type != 'Work Day' AND locale = 'National' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+) AS RankedHolidays
+WHERE date IN ('2014-12-26','2016-05-01','2016-05-07','2016-05-06');
+```
+
+<div align="center">
+
+![find_duplicateddates_country](img/find_duplicateddates_country.png)
+</div>
+
+What we have to do now, is to exclude those duplicate dates from in the CTE during the fourth merge. At the same time, we also validate the count of country holidays with CTE `HolidayCount`
+
 ```sql
 SELECT COUNT(DISTINCT date) AS country_hols_count
 FROM (
   WITH CityHolidays AS (
     SELECT
-    date,
-    locale_name,
-    GROUP_CONCAT(DISTINCT type) AS type
-  FROM holidays_events
-  WHERE type != 'Work Day' AND locale = 'Local' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
-  GROUP BY date, locale_name
+      date,
+      locale_name,
+      GROUP_CONCAT(DISTINCT type) AS type
+    FROM holidays_events
+    WHERE type != 'Work Day' AND locale = 'Local' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+    GROUP BY date, locale_name
   ),
   
   StateHolidays AS (
-    SELECT  
+    SELECT
       date,
       locale_name,
       type
@@ -503,30 +554,37 @@ FROM (
       date,
       locale_name,
       type
-    FROM holidays_events
-    WHERE type != 'Work Day' and locale = 'National' and transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
-    GROUP BY date, locale_name, type
+    FROM (
+      SELECT
+        date,
+        locale_name,
+        type,
+        ROW_NUMBER() OVER(PARTITION BY date ORDER BY locale_name, type) AS rn
+      FROM holidays_events
+      WHERE type != 'Work Day' AND locale = 'National' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+    ) AS RankedHolidays
+    WHERE rn = 1
   )
   
-  SELECT
-    tr.*,
-    st.city,
-    st.state,
-    c_hols.type AS city_hols_type,
-    IF(c_hols.type IS NULL, 'No', 'Yes') as city_hols,
-    s_hols.type AS state_hols_type,
-    IF(s_hols.type IS NULL, 'No', 'Yes') as state_hols,
-    n_hols.type AS nation_hols_type,
-    IF(n_hols.type IS NULL, 'No', 'Yes') as nation_hols
-  FROM train AS tr
-  LEFT JOIN stores AS st
-    ON tr.store_nbr = st.store_nbr
-  LEFT JOIN CityHolidays AS c_hols
-    ON tr.date = c_hols.date AND st.city = c_hols.locale_name
-  LEFT JOIN StateHolidays AS s_hols
-    ON tr.date = s_hols.date AND st.state = s_hols.locale_name
-  LEFT JOIN NationHolidays AS n_hols
-    ON tr.date = n_hols.date
+SELECT
+  tr.*,
+  st.city,
+  st.state,
+  c_hols.type AS city_hols_type,
+  IF(c_hols.type IS NULL, 'No', 'Yes') as city_hols,
+  s_hols.type AS state_hols_type,
+  IF(s_hols.type IS NULL, 'No', 'Yes') as state_hols,
+  n_hols.type AS nation_hols_type,
+  IF(n_hols.type IS NULL, 'No', 'Yes') as nation_hols
+FROM train AS tr
+LEFT JOIN stores AS st
+  ON tr.store_nbr = st.store_nbr
+LEFT JOIN CityHolidays AS c_hols
+  ON tr.date = c_hols.date AND st.city = c_hols.locale_name
+LEFT JOIN StateHolidays AS s_hols
+  ON tr.date = s_hols.date AND st.state = s_hols.locale_name
+LEFT JOIN NationHolidays AS n_hols
+  ON tr.date = n_hols.date
 ) subquery
 WHERE nation_hols = 'Yes';
 ```
@@ -537,3 +595,5 @@ WHERE nation_hols = 'Yes';
 :-------------------------:|:-------------------------:
 ![CTE_HolidayCount](img/count_holiday.png) | ![subquery](img/validate_left_join_4.png)
 </div>
+
+Validation success. The count of country holidays is the same as CTE `HolidayCount` after we add the 4 duplicate dates with 131.
