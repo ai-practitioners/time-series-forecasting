@@ -687,3 +687,79 @@ Note that due to non-trading days, there are no oil prices. Hence, there will be
 
 ![after_merge_oil](img/after_merge_oil.png)
 </div>
+
+# Sixth merge (store type and cluster)
+This is a straightforward merge where we include the `type` and `cluster` of each store into the main query, using `store_nbr` as the common column.
+
+Since `store` table has been merge into `train` during the first merge, bringing in `type` and `cluster` column into main query will be easy. Simply add the these 2 columns into the main query.
+
+```sql
+WITH CityHolidays AS (
+  SELECT
+    date,
+    locale_name,
+    GROUP_CONCAT(DISTINCT type) AS type
+  FROM holidays_events
+  WHERE type != 'Work Day' AND locale = 'Local' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  GROUP BY date, locale_name
+),
+
+StateHolidays AS (
+  SELECT
+    date,
+    locale_name,
+    type
+  FROM holidays_events
+  WHERE type != 'Work Day' and locale = 'Regional' and transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  GROUP BY date, locale_name, type
+  ),
+  
+NationHolidays AS (
+  SELECT
+    date,
+    locale_name,
+    type
+  FROM (
+    SELECT
+      date,
+      locale_name,
+      type,
+      ROW_NUMBER() OVER(PARTITION BY date ORDER BY locale_name, type) AS rn
+    FROM holidays_events
+    WHERE type != 'Work Day' AND locale = 'National' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  ) AS RankedHolidays
+  WHERE rn = 1
+)
+  
+SELECT
+  tr.*,
+  st.city,
+  st.state,
+  c_hols.type AS city_hols_type,
+  IF(c_hols.type IS NULL, 'No', 'Yes') as city_hols,
+  s_hols.type AS state_hols_type,
+  IF(s_hols.type IS NULL, 'No', 'Yes') as state_hols,
+  n_hols.type AS nation_hols_type,
+  IF(n_hols.type IS NULL, 'No', 'Yes') as nation_hols,
+  o.dcoilwtico AS oil_price,
+  st.type,
+  st.cluster
+FROM train AS tr
+LEFT JOIN stores AS st
+  ON tr.store_nbr = st.store_nbr
+LEFT JOIN CityHolidays AS c_hols
+  ON tr.date = c_hols.date AND st.city = c_hols.locale_name
+LEFT JOIN StateHolidays AS s_hols
+  ON tr.date = s_hols.date AND st.state = s_hols.locale_name
+LEFT JOIN NationHolidays AS n_hols
+  ON tr.date = n_hols.date
+LEFT JOIN oil as o
+  ON tr.date = o.date
+```
+
+Again, no addition rows which is a good sign that the query works as intended.
+
+<div align="center">
+
+![after_merge_type_cluster](img/after_merge_type_cluster.png)
+</div>
