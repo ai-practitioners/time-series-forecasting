@@ -1,62 +1,66 @@
-WITH CTE_local_holiday (
-	  holiday_date
-	, locale
-	, locale_name
-) AS (
-	SELECT DISTINCT
-	  local_holiday.date
-	, local_holiday.locale
-    , local_holiday.locale_name
-	FROM holidays_events as local_holiday
-	WHERE locale = 'Local' and transferred = 'False'
+WITH CityHolidays AS (
+  SELECT
+    date,
+    locale_name,
+    GROUP_CONCAT(DISTINCT type) AS type
+  FROM holidays_events
+  WHERE type != 'Work Day' AND locale = 'Local' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  GROUP BY date, locale_name
 ),
 
-CTE_regional_holiday (
-	  holiday_date
-	, locale
-	, locale_name
-) AS (
-	SELECT DISTINCT
-		regional_holiday.date
-	  , regional_holiday.locale
-	  , regional_holiday.locale_name
-	FROM holidays_events as regional_holiday
-	WHERE locale = 'Regional' and transferred = 'False'
-),
-
-CTE_national_holiday (
-		  holiday_date
-		, locale
-		, locale_name
-) AS (
-	SELECT DISTINCT
-		national_holiday.date
-	  , national_holiday.locale
-	  , national_holiday.locale_name
-	FROM holidays_events as national_holiday
-	WHERE locale = 'National' and transferred = 'False'
+StateHolidays AS (
+  SELECT
+    date,
+    locale_name,
+    type
+  FROM holidays_events
+  WHERE type != 'Work Day' and locale = 'Regional' and transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  GROUP BY date, locale_name, type
+  ),
+  
+NationHolidays AS (
+  SELECT
+    date,
+    locale_name,
+    type
+  FROM (
+    SELECT
+      date,
+      locale_name,
+      type,
+      ROW_NUMBER() OVER(PARTITION BY date ORDER BY locale_name, type) AS rn
+    FROM holidays_events
+    WHERE type != 'Work Day' AND locale = 'National' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  ) AS RankedHolidays
+  WHERE rn = 1
 )
-
+  
 SELECT
-	  tr.*
-	, str.city
-    , str.state
-    , str.type
-    , str.cluster
-    , trans.transactions
-    , IF(city_holiday.locale IS NULL, 0, 1) AS is_city_holiday
-	, IF(regional_holiday.locale IS NULL, 0, 1) AS is_regional_holiday
-    , IF(national_holiday.locale IS NULL, 0, 1) AS is_national_holiday
-FROM time_series.train AS tr
-LEFT JOIN time_series.stores AS str
-	ON tr.store_nbr = str.store_nbr
-LEFT JOIN time_series.transactions AS trans
-	ON tr.store_nbr = trans.store_nbr AND tr.date = trans.date
-LEFT JOIN CTE_local_holiday AS city_holiday
-	ON str.city = city_holiday.locale_name AND tr.date = city_holiday.holiday_date
-LEFT JOIN CTE_regional_holiday AS regional_holiday
-	ON str.state = regional_holiday.locale_name AND tr.date = regional_holiday.holiday_date
-LEFT JOIN CTE_national_holiday AS national_holiday
-	ON tr.date = national_holiday.holiday_date
+  tr.*,
+  st.city,
+  st.state,
+  c_hols.type AS city_hols_type,
+  IF(c_hols.type IS NULL, 'No', 'Yes') as city_hols,
+  s_hols.type AS state_hols_type,
+  IF(s_hols.type IS NULL, 'No', 'Yes') as state_hols,
+  n_hols.type AS nation_hols_type,
+  IF(n_hols.type IS NULL, 'No', 'Yes') as nation_hols,
+  o.dcoilwtico AS oil_price,
+  st.type,
+  st.cluster,
+  txn.transactions
+FROM train AS tr
+LEFT JOIN stores AS st
+  ON tr.store_nbr = st.store_nbr
+LEFT JOIN CityHolidays AS c_hols
+  ON tr.date = c_hols.date AND st.city = c_hols.locale_name
+LEFT JOIN StateHolidays AS s_hols
+  ON tr.date = s_hols.date AND st.state = s_hols.locale_name
+LEFT JOIN NationHolidays AS n_hols
+  ON tr.date = n_hols.date
+LEFT JOIN oil as o
+  ON tr.date = o.date
+LEFT JOIN transactions AS txn
+  ON tr.date = txn.date AND tr.store_nbr = txn.store_nbr
 ;
 
