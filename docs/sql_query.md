@@ -763,3 +763,87 @@ Again, no addition rows which is a good sign that the query works as intended.
 
 ![after_merge_type_cluster](img/after_merge_type_cluster.png)
 </div>
+
+# Seventh merge (transactions)
+The last merge of the main query will be transactions of each store and at given date. The Kaggle website did not provide any relevant information about transactions. To ensure credibility of our research, we rely on author of the most voted Kaggle notebook for this challenge for the meaning behind this column. At the time of working this project (Aug 2023), we referenced to [Ekrem Bayar](https://www.kaggle.com/ekrembayar)'s which can be found [here](https://www.kaggle.com/code/ekrembayar/store-sales-ts-forecasting-a-comprehensive-guide).
+
+```sql
+WITH CityHolidays AS (
+  SELECT
+    date,
+    locale_name,
+    GROUP_CONCAT(DISTINCT type) AS type
+  FROM holidays_events
+  WHERE type != 'Work Day' AND locale = 'Local' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  GROUP BY date, locale_name
+),
+
+StateHolidays AS (
+  SELECT
+    date,
+    locale_name,
+    type
+  FROM holidays_events
+  WHERE type != 'Work Day' and locale = 'Regional' and transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  GROUP BY date, locale_name, type
+  ),
+  
+NationHolidays AS (
+  SELECT
+    date,
+    locale_name,
+    type
+  FROM (
+    SELECT
+      date,
+      locale_name,
+      type,
+      ROW_NUMBER() OVER(PARTITION BY date ORDER BY locale_name, type) AS rn
+    FROM holidays_events
+    WHERE type != 'Work Day' AND locale = 'National' AND transferred = 'False' AND date BETWEEN '2013-01-01' AND '2017-08-15'
+  ) AS RankedHolidays
+  WHERE rn = 1
+)
+  
+SELECT
+  tr.*,
+  st.city,
+  st.state,
+  c_hols.type AS city_hols_type,
+  IF(c_hols.type IS NULL, 'No', 'Yes') as city_hols,
+  s_hols.type AS state_hols_type,
+  IF(s_hols.type IS NULL, 'No', 'Yes') as state_hols,
+  n_hols.type AS nation_hols_type,
+  IF(n_hols.type IS NULL, 'No', 'Yes') as nation_hols,
+  o.dcoilwtico AS oil_price,
+  st.type,
+  st.cluster,
+  txn.transactions
+FROM train AS tr
+LEFT JOIN stores AS st
+  ON tr.store_nbr = st.store_nbr
+LEFT JOIN CityHolidays AS c_hols
+  ON tr.date = c_hols.date AND st.city = c_hols.locale_name
+LEFT JOIN StateHolidays AS s_hols
+  ON tr.date = s_hols.date AND st.state = s_hols.locale_name
+LEFT JOIN NationHolidays AS n_hols
+  ON tr.date = n_hols.date
+LEFT JOIN oil as o
+  ON tr.date = o.date
+LEFT JOIN transactions AS txn
+  ON tr.date = txn.date AND tr.store_nbr = txn.store_nbr
+```
+
+Merge is successful with no additional rows.
+
+<div align="center">
+
+![after_merge_transactions](img/after_merge_transactions.png)
+</div>
+
+# Conclusion
+In this markdown file, we detailed out the steps which we undertook in building the final query for this project. 
+
+We thought that this documentation is necessary as it provides detailed explanation of how the query is being built and validated for mistakes along the way. We also hope being transparent in our thought process can serve as a means to welcome mistakes, identify and address to them at the early part of the project.
+
+This documentation is being tracked in [#19](https://github.com/ai-practitioners/time-series-forecasting/issues/19). If there are any discrepancies found, please do not hesitate the comment on the issue! 
