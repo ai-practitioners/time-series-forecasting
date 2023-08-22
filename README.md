@@ -127,7 +127,15 @@ This part of the setup will be split into 2 sections. In section 1, we will look
 Execute the following block to create the train table in `time_series` database.
 
 ```sql
-CREATE TABLE train...
+CREATE TABLE train (
+  id INT NOT NULL AUTO_INCREMENT,
+  date DATE NOT NULL,
+  store_nbr INT NOT NULL,
+  family VARCHAR(100) NOT NULL,
+  sales DECIMAL(10 , 3 ) NOT NULL,
+  onpromotion INT NOT NULL,
+  PRIMARY KEY (id)
+);
 ```
 
 When you run the `LOAD DATA LOCAL INFILE...` block for the first time, you might encounter error code 2068 which means the settings of local_infile system variable is 0 (or disabled).

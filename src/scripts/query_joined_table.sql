@@ -63,4 +63,3 @@ LEFT JOIN oil as o
 LEFT JOIN transactions AS txn
   ON tr.date = txn.date AND tr.store_nbr = txn.store_nbr
 ;
-
