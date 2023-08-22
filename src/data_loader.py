@@ -41,7 +41,7 @@ class DBDataLoader(DataLoader):
         self.database = self._get_database_engine()
         logging.info("[+] Local Connection Successful")
         
-        self.query = 'SELECT * FROM quito'
+        self.query = 'SELECT * FROM full_df'
 
 
     def load(self, query=None):
@@ -79,7 +79,7 @@ class DBDataLoader(DataLoader):
         # using mysql.connector
         # return mysql.connector.connect(f'mysql+mysqldb://{user}:{password}@{host}/{db}')
         # using sqlalchemy
-        return create_engine(f'mysql+mysqldb://{user}:{password}@{host}/{db}')
+        return create_engine(f'mysql+pymysql://{user}:{password}@{host}/{db}')
 
     def get_connection_string(self, env, library):
         if env == "local":
