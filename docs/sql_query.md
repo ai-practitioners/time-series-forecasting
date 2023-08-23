@@ -832,9 +832,10 @@ LEFT JOIN oil as o
   ON tr.date = o.date
 LEFT JOIN transactions AS txn
   ON tr.date = txn.date AND tr.store_nbr = txn.store_nbr
+ORDER BY id;
 ```
 
-Merge is successful with no additional rows.
+Merge is successful with no additional rows. `ORDER BY id` is added at the last time to re-sort the rows being jumbled up as a result from the merge. This is because the first match between the main query and transactions table happen to be `store_nbr = 25`. In the main query, the first record for `store_nbr = 25` is found to be at `id = 561`. Hence, SQL will re-sort the rows where the first match is found.
 
 <div align="center">
 
