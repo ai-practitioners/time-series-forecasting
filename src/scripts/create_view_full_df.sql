@@ -66,4 +66,5 @@ LEFT JOIN oil as o
   ON tr.date = o.date
 LEFT JOIN transactions AS txn
   ON tr.date = txn.date AND tr.store_nbr = txn.store_nbr
+ORDER BY id
 ;
