@@ -2817,8 +2817,7 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
-    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
-    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
+    {version = ">=1.21.0", markers = "python_version >= \"3.10\""},
 ]
 python-dateutil = ">=2.8.1"
 pytz = ">=2020.1"
@@ -5063,5 +5062,5 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.9,<3.12"
-content-hash = "269f817e612fb8f5f8e4d65172be720bd8ed27f63d820ba02a39c54e109b7337"
+python-versions = ">=3.9,<3.11"
+content-hash = "7b0b163efaa0c5145c177df14f4318d85f5de6cbd793503a2e0aa6fe0b76145d"
