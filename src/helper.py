@@ -3,6 +3,22 @@ import polars as pl
 def get_aggregate_data(dataframe, select_hierarchy):
     '''
         Aggregate sales data based on the specified hierarchy of "country," "state," or "city."
+
+        Parameters:
+        - dataframe (pl.DataFrame): The input DataFrame containing sales data.
+        - select_hierarchy (str): The hierarchy level for aggregation, one of "country," "state," or "city."
+
+        Returns:
+        - pl.DataFrame: A DataFrame containing aggregated sales data based on the selected hierarchy.
+
+        Raises:
+        - ValueError: If the provided select_hierarchy is not one of "country," "state," or "city."
+
+        Example:
+        ```
+        # Aggregate sales data by state
+        state_agg_data = get_aggregate_data(sales_data, "state")
+        ```
     '''
 
     # define sorting hierarchy as dictionary
