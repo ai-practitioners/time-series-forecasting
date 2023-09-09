@@ -3,8 +3,22 @@ from logger import logging
 
 def query_clean_up(dataframe):
     '''
-        specifically written to clean up sql query output as a result from sql join statements.
+        Perform data cleaning on a SQL query output DataFrame.
+
+        This function aims to clean and preprocess a DataFrame generated from a SQL query output. It addresses specific cleaning
+        tasks such as replacing values, handling null values, and more.
+
+        Args:
+            dataframe (polars.DataFrame): The input DataFrame to be cleaned.
+
+        Returns:
+            polars.DataFrame: A cleaned and processed DataFrame.
+
+        Raises:
+            Exception: If any unexpected error occurs during the cleaning process, it is logged as an error message.
+                        The cleaning process is designed to handle various data anomalies gracefully.
     '''
+    
     try:
         logging.info("Initialising unique data cleaning of sql query output")
         
@@ -38,9 +52,26 @@ def query_clean_up(dataframe):
 
 def shrink_dataframe(dataframe):
     '''
-        takes in a dataframe and downcast each column to the smallest dtype
-        based on column min and max range.
+        Reduce memory usage by downcasting each column in a DataFrame to the smallest possible data type based on column statistics.
+
+        This function aims to optimize memory usage by downcasting data types for each column in the input DataFrame. It calculates
+        the minimum and maximum values for numeric columns and selects the smallest possible data type that can represent the range
+        without loss of precision. String columns are not modified.
+
+        Args:
+            dataframe (polars.DataFrame): The input DataFrame to be memory-optimized.
+
+        Returns:
+            polars.DataFrame: A memory-optimized DataFrame with downcasted data types.
+
+        Raises:
+            Exception: If any unexpected error occurs during the optimization process, it is logged as an error message.
+                        The optimization process is designed to handle various data anomalies gracefully.
+
+        Note:
+            This function can significantly reduce memory usage for large DataFrames with numeric columns.
     '''
+    
     try:
         logging.info(f"Shrinking dataframe to reduce memory. Size of dataframe: {round(dataframe.estimated_size('mb'),2)} MB")
         
