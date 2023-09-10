@@ -294,6 +294,17 @@ This was an important step in the beginning because there were a lot of times we
 </div>
 ```
 
+
+> [!IMPORTANT]
+> This was an important step in the beginning because there were a lot of times we found ourselves with explosion of rows with NULL values. The explosion of rows were caused by duplicated dates from `holiday_events` table.
+
+> `GROUP_CONCAT(DISTINCT type) AS types` is written because on 2016-07-24, for city Guayaquil, there seems to be a repeated holiday on the same date. If this repeated date is not removed, it will also cause explosion of rows.
+
+> <div align="center">
+
+> ![guayaquil_repeat_dates](img/guayaquil_repeat_dates.png)
+> </div>
+
 Now moving on to the actual second merge, we take the previous query and put it as a subquery, calling it `subquery_c`.
 - We join on 2 sets of matching columns - date and city name columns from `train` and `subquery_c`.
 - Where there is a match on the 2 sets of matching columns from both table, temporary return value from `transferred` column from `subquery_c`, and rename if as `Yes`. If there is no match, indicating there is no holiday on that day of the city, `NULL` will be returned, and rename it as `No`.
