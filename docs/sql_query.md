@@ -283,25 +283,13 @@ GROUP BY date, locale_name;
 ![city_holidays](img/city_holidays.png)
 </div>
 
-```{attention}
-This was an important step in the beginning because there were a lot of times we found ourselves with explosion of rows with NULL values. The explosion of rows were caused by duplicated dates from `holiday_events` table.
-
-`GROUP_CONCAT(DISTINCT type) AS types` is written because on 2016-07-24, for city Guayaquil, there seems to be a repeated holiday on the same date. If this repeated date is not removed, it will also cause explosion of rows.
-
-<div align="center">
-
-![guayaquil_repeat_dates](img/guayaquil_repeat_dates.png)
-</div>
-```
-
-
 > [!IMPORTANT]
 > This was an important step in the beginning because there were a lot of times we found ourselves with explosion of rows with NULL values. The explosion of rows were caused by duplicated dates from `holiday_events` table.
-
+> 
 > `GROUP_CONCAT(DISTINCT type) AS types` is written because on 2016-07-24, for city Guayaquil, there seems to be a repeated holiday on the same date. If this repeated date is not removed, it will also cause explosion of rows.
-
+>
 > <div align="center">
-
+>
 > ![guayaquil_repeat_dates](img/guayaquil_repeat_dates.png)
 > </div>
 
