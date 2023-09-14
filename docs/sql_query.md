@@ -100,10 +100,9 @@ FROM CityStartEnd;
 Join `train` and `store` tables with `store_nbr` being the common column. We only join `city` instead of `state` as city is on a more granular level and one column is sufficient for now in this analysis.
 
 ```{figure} img/city_timeline.png
----
-name: city_timeline
-align: center
----
+:name: city_timeline
+:align: center
+
 Fig 1. Start and end dates of all cities
 ```
 
