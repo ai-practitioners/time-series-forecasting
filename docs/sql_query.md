@@ -75,7 +75,7 @@ As train table contains the most number of rows, consider it as the fact table a
 ### Timeline of cities
 Analyzing the length of each cities' timeline can give us a rough idea of how distributed each city time series between each other.
 
-Why prioritize analysis on cities? Because city is on a more granular level. By inspecting on city level, we ensure we do not miss out hidden patterns as compared to analysis done on state and national level. The results of the query below can be seen from {ref}`Figure 1 <city_timeline>` below.
+Why prioritize analysis on cities? Because city is on a more granular level. By inspecting on city level, we ensure we do not miss out hidden patterns as compared to analysis done on state and national level. The results of the query below can be seen from [Figure 1](city_timeline) below.
 
 ```sql
 WITH CityStartEnd AS (
@@ -99,13 +99,12 @@ FROM CityStartEnd;
 
 Join `train` and `store` tables with `store_nbr` being the common column. We only join `city` instead of `state` as city is on a more granular level and one column is sufficient for now in this analysis.
 
-```{figure} img/city_timeline.png
----
-name: city_timeline
-align: center
----
+
+:::{figure-md} city_timeline
+<img src="img/city_timeline.png" class="bg-primary mb-1">
+
 Fig 1. Start and end dates of all cities
-```
+:::
 
 Results from this analysis: Each city has the same timeline range from 2013-01-01 to 2017-08-15. But this does not guarantee that all cities will have equal number of time points (observations) so let's also check that.
 
