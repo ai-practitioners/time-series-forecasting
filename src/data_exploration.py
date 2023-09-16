@@ -68,7 +68,28 @@ def get_geo_coordinates(username, location_name, country_code_iso):
         print(e)
         return None
     
-def plot_sales_averages(dataframe, select_hierarchy, name):
+def plot_sales_averages(dataframe, select_hierarchy, name=None):
+    '''
+        This function plots the sales averages for a given hierarchy (country, state, or city) from a provided dataframe.
+
+        Parameters:
+            - dataframe (polars.DataFrame): The input dataframe containing sales data.
+            - select_hierarchy (str): The hierarchy level to aggregate data on. This can be 'country', 'state', or 'city'.
+            - name (str, optional): The specific name of the state or city to plot data for. This should be None when select_hierarchy is 'country'.
+
+        Raises:
+            ValueError: If 'name' is not None when 'select_hierarchy' is 'country'.
+            ValueError: If an invalid state name is provided when 'select_hierarchy' is 'state'.
+            ValueError: If an invalid city name is provided when 'select_hierarchy' is 'city'.
+
+        Returns:
+            None. The function directly plots the sales averages using Plotly.
+    '''
+    
+    if select_hierarchy == 'country':
+        # check if name is set to None or left empty when select_hierarchy is 'country'
+        if name is not None:
+            raise ValueError('Ignore name or set it to None when select_hierarchy is "country".')
     
     # create an aggregated dataframe based on user selection of either state or city
     agg_df = helper.get_aggregate_data(dataframe=dataframe, select_hierarchy=select_hierarchy)
@@ -78,13 +99,35 @@ def plot_sales_averages(dataframe, select_hierarchy, name):
         agg_df = agg_df.with_columns(pl.col('date').cast(pl.Datetime))
     else:
         pass
+       
+    # check if the name of city or state is valid
+    if select_hierarchy == 'state':
+        # get a list of name of states
+        valid_states = dataframe.select('state').unique().to_series().to_list()
+        
+        if name not in valid_states:
+            raise ValueError(f'Invalid state name. Please choose one of the following: {valid_states}')
+        
+    elif select_hierarchy == 'city':
+        # get a list of name of cities
+        valid_cities = dataframe.select('city').unique().to_series().to_list()
+        
+        if name not in valid_cities:
+            raise ValueError(f'Invalid city name. Please choose one of the following: {valid_cities}')
     
-    # further subset the dataframe based on user selection of name of state or city
-    sub_df = agg_df.filter(pl.col(select_hierarchy) == name)
+    else:
+        # no checks needed if select_hierarchy == 'country'
+        pass
     
+    if select_hierarchy == 'country':
+        agg_df = agg_df
+    else:
+        # further subset the dataframe based on user selection of name of state or city
+        agg_df = agg_df.filter(pl.col(select_hierarchy) == name)
+       
     # create temporal averages
-    sub_avg_df = (
-        sub_df
+    tmp_avg_df = (
+        agg_df
         .with_columns(
             weekly_avg=pl.col('sales').rolling_mean(window_size='1w', by='date', closed='left')
         )
@@ -112,8 +155,8 @@ def plot_sales_averages(dataframe, select_hierarchy, name):
     # add actual trace to the top subplot
     sales_fig.add_trace(
         go.Scatter(
-            x=sub_avg_df['date'],
-            y=sub_avg_df['sales'],
+            x=tmp_avg_df['date'],
+            y=tmp_avg_df['sales'],
             name='Actual Sales (Weekly/Monthly)',
             line=dict(color='cyan'),
             legendgroup='group1',
@@ -125,8 +168,8 @@ def plot_sales_averages(dataframe, select_hierarchy, name):
     # add weekly avg trace to the top subplot
     sales_fig.add_trace(
         go.Scatter(
-            x=sub_avg_df['date'],
-            y=sub_avg_df['weekly_avg'],
+            x=tmp_avg_df['date'],
+            y=tmp_avg_df['weekly_avg'],
             name='Weekly Sales',
             line=dict(color='magenta'),
             legendgroup='group1',
@@ -139,8 +182,8 @@ def plot_sales_averages(dataframe, select_hierarchy, name):
     # add monthly trace to the top subplot
     sales_fig.add_trace(
         go.Scatter(
-            x=sub_avg_df['date'],
-            y=sub_avg_df['monthly_avg'],
+            x=tmp_avg_df['date'],
+            y=tmp_avg_df['monthly_avg'],
             name='Monthly Sales',
             line=dict(color='yellow'),
             legendgroup='group1',
@@ -152,8 +195,8 @@ def plot_sales_averages(dataframe, select_hierarchy, name):
     # add actual trace again to the bottom subplot
     sales_fig.add_trace(
         go.Scatter(
-            x=sub_avg_df['date'],
-            y=sub_avg_df['sales'],
+            x=tmp_avg_df['date'],
+            y=tmp_avg_df['sales'],
             name='Actual Sales (Quarterly/Yearly)',
             line=dict(color='cyan'),
             legendgroup='group2',
@@ -165,8 +208,8 @@ def plot_sales_averages(dataframe, select_hierarchy, name):
     # add quarterly avg trace to the bottom subplot
     sales_fig.add_trace(
         go.Scatter(
-            x=sub_avg_df['date'],
-            y=sub_avg_df['quarterly_avg'],
+            x=tmp_avg_df['date'],
+            y=tmp_avg_df['quarterly_avg'],
             name='Quaterly Sales',
             line=dict(color='orange'),
             legendgroup='group2',
@@ -178,8 +221,8 @@ def plot_sales_averages(dataframe, select_hierarchy, name):
     # add yearly avg trace to the bottom subplot
     sales_fig.add_trace(
         go.Scatter(
-            x=sub_avg_df['date'],
-            y=sub_avg_df['yearly_avg'],
+            x=tmp_avg_df['date'],
+            y=tmp_avg_df['yearly_avg'],
             name='Yearly Sales',
             line=dict(color='lime'),
             legendgroup='group2',
@@ -188,9 +231,16 @@ def plot_sales_averages(dataframe, select_hierarchy, name):
         row=2, col=1
     )
 
+    # change figure title for different hierarchy selection
+    if select_hierarchy == 'country':
+        figure_title = f'Temporal Averages Sales<br>Ecuador'
+    else:
+        # further subset the dataframe based on user selection of name of state or city
+        figure_title = f'Temporal Averages Sales by State<br>State: {tmp_avg_df.item(row=0, column="state")}'
+    
     # general customisation of the figure
     sales_fig.update_layout(
-        title=f'Temporal Averages Sales by State<br>State: {sub_avg_df.item(row=0, column="state")}',
+        title=figure_title,
         showlegend=False,
         xaxis_showgrid=False,
         yaxis_showgrid=False,
