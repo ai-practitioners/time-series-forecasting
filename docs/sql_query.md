@@ -205,11 +205,11 @@ Let's first count the number of days from 2012 to 2017 for each city and state, 
 2. Type of day where `type = Work Day` does not count as a celebration day.
 3. Include `date` which are between `2013-01-01` - `2017-08-15`. This will align with the date range from `train`.
 
-```{note}
+> [!NOTE]  
 Without knowing the number of days of holiday for each city first will not allow us to validate the next part of SQL join is done correctly. That is why in the earlier part, we analyzed for each city and state, their number of days of holiday.
+> 
+> This is an important step for the first merge for the final query as we have a source of truth to validate our workings.****
 
-This is an important step for the first merge for the final query as we have a source of truth to validate our workings.****
-```
 
 ```sql
 WITH HolidayCount AS (
