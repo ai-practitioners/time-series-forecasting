@@ -234,9 +234,10 @@ def plot_sales_averages(dataframe, select_hierarchy, name=None):
     # change figure title for different hierarchy selection
     if select_hierarchy == 'country':
         figure_title = f'Temporal Averages Sales<br>Ecuador'
+    elif select_hierarchy == 'state':
+        figure_title = f'Temporal Averages Sales by State<br>State: {tmp_avg_df.item(row=0, column=select_hierarchy)}'
     else:
-        # further subset the dataframe based on user selection of name of state or city
-        figure_title = f'Temporal Averages Sales by State<br>State: {tmp_avg_df.item(row=0, column="state")}'
+        figure_title = f'Temporal Averages Sales by City<br>City: {tmp_avg_df.item(row=0, column=select_hierarchy)}'
     
     # general customisation of the figure
     sales_fig.update_layout(
