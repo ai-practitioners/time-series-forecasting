@@ -7,10 +7,11 @@ dvc
 tqdm
 ydata-profiling
 sqlalchemy
-mysql-connector-python 
 connectorx
 pycaret
 polars
 pyarrow
 jupyter-book
 jupytext
+geopy
+kaleido
