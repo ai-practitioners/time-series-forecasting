@@ -17,16 +17,18 @@ kernelspec:
 This page documents the thought and reasoning process of arriving at the final state of the query to be used in the dataset analysis for this project.
 
 ## Motivation of building this query
+
 The final state of the query is built upon the consideration of joining all necessary tables together as a complete table. When queried into working notebook as pandas dataframe, EDA can begin without the need to perform pandas join afterwards. Having a complete or full dataframe to begin with also allows slicing and dicing much easier (i.e. EDA on a particular city or stores).
 
 ## The aim for the query final state
-Merge as much columns as we can together in the early stage of the project. We will not be needing to jump between database and working space to dig for more data at later phase of analysis.
+
+Merge as many columns as we can together in the early stages of the project. We will not be needing to jump between database and working space to dig for more data at later phase of analysis.
 
 ## About the setup
 
-Workstation: MacOS 13 (arm64)<br>
-Software: MySQL Community Server - GPL (8.0.33)<br>
-Environment: localhost
+- Workstation: MacOS 13 (arm64)
+- Software: MySQL Community Server - GPL (8.0.33)
+- Environment: localhost
 
 ## About the database and dataset
 
@@ -34,8 +36,8 @@ The 5 main files used in our analysis are the following csv files which are loca
 
 <div align="center">
 
-| File name | Table name (In database) | Table name (In query) |
-| :--- | :---: | :---: |
+| File name | Table name<br>(In database) | Table name<br>(In query) |
+| :----- | :----: | :----: |
 | holiday_events.csv | holiday_events | `hols` |
 | oil.csv | oil | `o` |
 | stores.csv | stores | `st` |
@@ -73,9 +75,10 @@ WHERE TABLE_SCHEMA = 'time_series' AND table_name = 'holidays_events';
 As train table contains the most number of rows, consider it as the fact table and the other tables as dimensions tables.
 
 ### Timeline of cities
-Analyzing the length of each cities' timeline can give us a rough idea of how distributed each city time series between each other.
 
-Why prioritize analysis on cities? Because city is on a more granular level. By inspecting on city level, we ensure we do not miss out hidden patterns as compared to analysis done on state and national level. The results of the query below can be seen from {ref}`Figure 1 <city_timeline>` below.
+Analyzing the length of each city's timeline can give us a rough idea of how distributed each city's time series between each other.
+
+Why prioritize analysis on cities? Because city is on a more granular level. By inspecting on city level, we ensure we do not miss out hidden patterns as compared to analysis done on state and national level. The results of the query below can be seen from [Table 1](#table1) below.
 
 ```sql
 WITH CityStartEnd AS (
@@ -99,40 +102,38 @@ FROM CityStartEnd;
 
 Join `train` and `store` tables with `store_nbr` being the common column. We only join `city` instead of `state` as city is on a more granular level and one column is sufficient for now in this analysis.
 
-```{figure} img/city_timeline.png
-:name: city_timeline
-:align: center
+<span id="table1">*Table 1: Start and end dates of all cities*</span>
+![Table 1 Start and end dates of all cities](img/city_timeline.png)
 
-Fig 1. Start and end dates of all cities
-```
 
 Results from this analysis: Each city has the same timeline range from 2013-01-01 to 2017-08-15. But this does not guarantee that all cities will have equal number of time points (observations) so let's also check that.
 
 ### Time points of cities
 
-```{admonition} Query Explanation
+> [!IMPORTANT]  
+> Query Explanation
+>
+>```sql
+>WITH CityObCounts AS (
+>  SELECT
+>    COUNT(*) AS time_points,
+>    st.city,
+>    st.store_nbr
+>  FROM train AS tr
+>  LEFT JOIN stores AS st
+>    ON tr.store_nbr = st.store_nbr
+>  GROUP BY st.city, st.store_nbr
+>)
+>
+>SELECT
+>  ROW_NUMBER() OVER (ORDER BY city, store_nbr) AS row_num,
+>  time_points,
+>  city,
+>  store_nbr
+>FROM CityObCounts;
+>```
+>
 
-````
-
-```sql
-WITH CityObCounts AS (
-  SELECT
-    COUNT(*) AS time_points,
-    st.city,
-    st.store_nbr
-  FROM train AS tr
-  LEFT JOIN stores AS st
-    ON tr.store_nbr = st.store_nbr
-  GROUP BY st.city, st.store_nbr
-)
-
-SELECT
-  ROW_NUMBER() OVER (ORDER BY city, store_nbr) AS row_num,
-  time_points,
-  city,
-  store_nbr
-FROM CityObCounts;
-```
 <div align="center">
 
 | Cities time points page 1 | Cities time points page 2
@@ -143,6 +144,7 @@ FROM CityObCounts;
 Looks like all cities are having the same number of time points. It is noted that Quito store number 1 has 1 less observation. During this high level analysis, it is not significant right now.
 
 ### City/State hierarchy in Ecuador
+
 Considering Ecuador being the country as root node in the hierarchy. This sub-section explores a high level analysis on the dataset for the following hierarchy relationship. Ecuador is the country so it is the root of the hierarchy.
 
 <div align="center">
@@ -153,33 +155,33 @@ flowchart TD
     B --> C(No. of cities)
     C --> D(No. of stores)
 ```
+
 </div>
 
-```{admonition} Query Explanation
-
-````
-
-```sql
-WITH CityStoreCount AS (
-  SELECT
-    state,
-    COUNT(DISTINCT city) as city_count,
-    COUNT(*) as store_count
-  FROM stores
-  GROUP BY state
-)
-
-SELECT
-  ROW_NUMBER() OVER (ORDER by state) AS row_num,
-  state,
-  city_count,
-  store_count
-FROM CityStoreCount;
-```
+> [!IMPORTANT]  
+> Query Explanation
+>
+>```sql
+>WITH CityStoreCount AS (
+>  SELECT
+>    state,
+>    COUNT(DISTINCT city) as city_count,
+>    COUNT(*) as store_count
+>  FROM stores
+>  GROUP BY state
+>)
+>
+>SELECT
+>  ROW_NUMBER() OVER (ORDER by state) AS row_num,
+>  state,
+>  city_count,
+>  store_count
+>FROM CityStoreCount;
+>```
 
 <div align="center">
 
-![state_city_store_count](img/state_city_store_count_1.png)
+![Fig 2. state_city_store_count](img/state_city_store_count_1.png)
 </div>
 
 Most cities have around 1 to 3 stores. Pichincha have the most store count due to Quito, Ecuador's capital, being one of it's city. If we also drill deeper into store count for individual cities, we see that Quito does has the most store count.
@@ -194,6 +196,7 @@ Most cities have around 1 to 3 stores. Pichincha have the most store count due t
 </div>
 
 ### Holidays
+
 The Kaggle competition has provided [some noteworthy pointers about the holidays](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). So it is better that we do some analysis on the holidays of each city, state and nation. 
 
 Due to how the Ecuador government decides the celebrated dates of the holiday, it poses some challenge in building the query. We need to be careful when merging the columns. Many times during the merging, we realized duplicated dates in `holidays_events` caused the query result to explode with additional rows with null values. The duplicated dates (`date` column) from `holidays_events` as the right table (recall that `train` is the main table, hence `train` is the left table) have resulted in a many-to-one relationship with `date` column in `train`.
@@ -201,15 +204,15 @@ Due to how the Ecuador government decides the celebrated dates of the holiday, i
 Also, we were given holidays for year 2012 when the `train` starts from 2013.
 
 Let's first count the number of days from 2012 to 2017 for each city and state, and also the Ecuador herself, with consideration of the following conditions (exclude those days from the query results):
+
 1. Days where `transferred = True` does not count as an actual celebrated day.
 2. Type of day where `type = Work Day` does not count as a celebration day.
 3. Include `date` which are between `2013-01-01` - `2017-08-15`. This will align with the date range from `train`.
 
 > [!NOTE]  
 > Without knowing the number of days of holiday for each city first will not allow us to validate the next part of SQL join is done correctly. That is why in the earlier part, we analyzed for each city and state, their number of days of holiday.
-> 
+>
 > This is an important step for the first merge for the final query as we have a source of truth to validate our workings.
-
 
 ```sql
 WITH HolidayCount AS (
@@ -237,7 +240,7 @@ FROM HolidayCount;
 
 Not all cities and states have holidays. As analyzed in the previous sub-section, there are 16 states and 22 cities. But now, we see that only 4 states and 19 cities have holidays.
 
-# First merge (City & States)
+## First merge (City & States)
 
 We explored the merging of columns between `train` and `holidays_events` tables. We want to have information of all holidays because these information may be related to the sales of products in `train`. In order to do so, we need a common identifying column because both `train` and `holidays_events` table do not have a common column.
 
@@ -260,9 +263,10 @@ LEFT JOIN time_series.stores AS st
 ![left_join_1](img/left_join_1.png)
 </div>
 
-# Second merge (City Holidays)
+## Second merge (City Holidays)
 
-  Now, we have `city` column in `train`. We are ready to join `date` column from `holidays_events` so that we know how daily sales of cities' store are affected by holidays.
+Now, we have `city` column in `train`. We are ready to join `date` column from `holidays_events` so that we know how daily sales of cities' store are affected by holidays.
+
 - We start with a separate query which tells us all holiday dates for cities only. We take the same query from CTE `HolidayCount` and from `holidays_events` include a new condition to filter city rows (`locale = 'Local'`).
 - The query below will return unique date, this makes a one-to-many relationship of `date` columns with `train` table.
 
@@ -281,18 +285,18 @@ GROUP BY date, locale_name;
 ![city_holidays](img/city_holidays.png)
 </div>
 
-
 > [!IMPORTANT]
 > This was an important step in the beginning because there were a lot of times we found ourselves with explosion of rows with NULL values. The explosion of rows were caused by duplicated dates from `holiday_events` table.
-> 
-> `GROUP_CONCAT(DISTINCT type) AS types` is written because on 2016-07-24, for city Guayaquil, there seems to be a repeated holiday on the same date. If this repeated date is not removed, it will also cause explosion of rows.
-
-> <div align="center">
 >
-> ![guayaquil_repeat_dates](img/guayaquil_repeat_dates.png)
-> </div>
+>`GROUP_CONCAT(DISTINCT type) AS types` is written because on 2016-07-24, for city Guayaquil, there seems to be a repeated holiday on the same date. If this repeated date is not removed, it will also cause explosion of rows.
+
+<div align="center">
+
+![guayaquil_repeat_dates](img/guayaquil_repeat_dates.png)
+</div>
 
 Now moving on to the actual second merge, we take the previous query and put it as a subquery, calling it `subquery_c`.
+
 - We join on 2 sets of matching columns - date and city name columns from `train` and `subquery_c`.
 - Where there is a match on the 2 sets of matching columns from both table, temporary return value from `transferred` column from `subquery_c`, and rename if as `Yes`. If there is no match, indicating there is no holiday on that day of the city, `NULL` will be returned, and rename it as `No`.
 
@@ -358,19 +362,19 @@ GROUP BY city
 
 <div align="center">
 
-| CTE `HolidayCount` | City Holidays
+| CTE `HolidayCount` | City Holidays |
 :-------------------------:|:-------------------------:
-![CTE_HolidayCount](img/count_holiday.png) | ![subquery2](img/validate_left_join_2.png)
+| ![CTE_HolidayCount](img/count_holiday.png) | ![subquery2](img/validate_left_join_2.png) |
 </div>
 
-# Third merge (State Holidays)
+## Third merge (State Holidays)
 
 Next, we explore on joining state holidays. To do this, we are able to take the same subquery from the second merge. However, this will unnecessarily lengthen the query. What we can do is to use SQL CTE, making the query shorter and more readable.
 
-````{warning}
-<b>BUT</b> if we were to built a CTE of common holidays and continue with the next SQL LEFT JOIN for states, we would expect a result in days, where in reality is not a holiday, were mistakenly given holidays. This happens when the name of city and state are the same (E.g. Loja which is both city and state name).
-
-The query below comes after we modify `subquery_c` into a reuseable CTE named `CommonHolidays` and went ahead with a SQL LEFT JOIN. Note that in `CommonHolidays` we do not have a filter condition for `locale = 'Local'` anymore and also different grouping because `CommonHolidays` is suppose to contain all holidays for city, states and country.
+> [!WARNING]
+>**BUT** if we were to built a CTE of common holidays and continue with the next SQL LEFT JOIN for states, we would expect a result in days, where in reality is not a holiday, were mistakenly given holidays. This happens when the name of city and state are the same (E.g. Loja which is both city and state name).
+>
+>The query below comes after we modify `subquery_c` into a reuseable CTE named `CommonHolidays` and went ahead with a SQL LEFT JOIN. Note that in `CommonHolidays` we do not have a filter condition for `locale = 'Local'` anymore and also different grouping because `CommonHolidays` is suppose to contain all holidays for city, states and country.
 
 ```sql
 WITH CommonHolidays AS (
@@ -413,7 +417,6 @@ GROUP BY state;
 </div>
 
 By validating with CTE `HolidayCount` we noticed 2 more states (Loja and Esmeraldas) were "given" holidays mistakenly.
-````
 
 - The workaround will be to either revert back to using subquery or create a second SQL CTE for state (a temporary result set with only states holiday).
 - In order to retain query maintainability and readability, we proceeded with the latter.
@@ -467,12 +470,12 @@ GROUP BY state;
 
 <div align="center">
 
-| CTE `HolidayCount` | State Holidays
+| CTE `HolidayCount` | State Holidays |
 :-------------------------:|:-------------------------:
-![CTE_HolidayCount](img/count_holiday.png) | ![subquery](img/validate_left_join_3.png)
+| ![CTE_HolidayCount](img/count_holiday.png) | ![subquery](img/validate_left_join_3.png) |
 </div>
 
-# Fourth merge (Country Holidays)
+## Fourth merge (Country Holidays)
 
 The last SQL LEFT JOIN for this section will be getting all holiday dates for Ecuador. This merge is also quite tricky because there are also duplicated dates. And the way that the duplicated dates are handled differently as we saw from Second merge (City Holidays).
 
@@ -591,12 +594,13 @@ WHERE nation_hols = 'Yes';
 
 | CTE `HolidayCount` | Country Holidays
 :-------------------------:|:-------------------------:
-![CTE_HolidayCount](img/count_holiday.png) | ![subquery](img/validate_left_join_4.png)
+|![CTE_HolidayCount](img/count_holiday.png) | ![subquery](img/validate_left_join_4.png) |
 </div>
 
 Validation success. The count of country holidays is the same as CTE `HolidayCount` after we add the 4 duplicate dates with 131.
 
-# Fifth merge (oil prices)
+## Fifth merge (oil prices)
+
 With all holidays information in the main query, let's move on to merging the prices of oil into the main query. Before merging we check if there are any duplicated dates again.
 
 The following query checks if there are any dates where the count of occurrence is more than 1 (meaning duplicated dates). If there are no duplicated dates, the results should be empty
@@ -686,7 +690,8 @@ Note that due to non-trading days, there are no oil prices. Hence, there will be
 ![after_merge_oil](img/after_merge_oil.png)
 </div>
 
-# Sixth merge (store type and cluster)
+## Sixth merge (store type and cluster)
+
 This is a straightforward merge where we include the `type` and `cluster` of each store into the main query, using `store_nbr` as the common column.
 
 Since `store` table has been merge into `train` during the first merge, bringing in `type` and `cluster` column into main query will be easy. Simply add the these 2 columns into the main query.
@@ -762,7 +767,8 @@ Again, no addition rows which is a good sign that the query works as intended.
 ![after_merge_type_cluster](img/after_merge_type_cluster.png)
 </div>
 
-# Seventh merge (transactions)
+## Seventh merge (transactions)
+
 The last merge of the main query will be transactions of each store and at given date. The Kaggle website did not provide any relevant information about transactions. To ensure credibility of our research, we rely on author of the most voted Kaggle notebook for this challenge for the meaning behind this column. At the time of working this project (Aug 2023), we referenced to [Ekrem Bayar](https://www.kaggle.com/ekrembayar)'s which can be found [here](https://www.kaggle.com/code/ekrembayar/store-sales-ts-forecasting-a-comprehensive-guide).
 
 ```sql
@@ -840,9 +846,10 @@ Merge is successful with no additional rows. `ORDER BY id` is added at the last 
 ![after_merge_transactions](img/after_merge_transactions.png)
 </div>
 
-# Conclusion
-In this markdown file, we detailed out the steps which we undertook in building the final query for this project. 
+## Conclusion
+
+In this markdown file, we detailed out the steps which we undertook in building the final query for this project.
 
 We thought that this documentation is necessary as it provides detailed explanation of how the query is being built and validated for mistakes along the way. We also hope being transparent in our thought process can serve as a means to welcome mistakes, identify and address to them at the early part of the project.
 
-This documentation is being tracked in [#19](https://github.com/ai-practitioners/time-series-forecasting/issues/19). If there are any discrepancies found, please do not hesitate the comment on the issue! 
+This documentation is being tracked in [#19](https://github.com/ai-practitioners/time-series-forecasting/issues/19). If there are any discrepancies found, please do not hesitate the comment on the issue!
