@@ -103,6 +103,7 @@ FROM CityStartEnd;
 Join `train` and `store` tables with `store_nbr` being the common column. We only join `city` instead of `state` as city is on a more granular level and one column is sufficient for now in this analysis.
 
 <span id="table1">*Table 1: Start and end dates of all cities*</span>
+
 ![Table 1 Start and end dates of all cities](img/city_timeline.png)
 
 
