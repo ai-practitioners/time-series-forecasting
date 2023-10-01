@@ -1,3 +1,7 @@
+USE time_series;
+
+CREATE OR REPLACE VIEW full_df AS
+
 WITH CityHolidays AS (
   SELECT
     date,

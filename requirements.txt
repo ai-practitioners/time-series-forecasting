@@ -1,9 +1,17 @@
-numpy==1.23.0
-pandas==2.0.3  # wati's 1.5.3
-kaggle==1.5.15
-pymysql==1.1.0
-python-dotenv==1.0.0
-dvc==3.4.0
-tqdm==4.65.0
-ydata-profiling==4.3.1
-sqlalchemy==1.4.40
+numpy
+pandas
+kaggle
+pymysql
+python-dotenv
+dvc
+tqdm
+ydata-profiling
+sqlalchemy
+connectorx
+pycaret
+polars
+pyarrow
+jupyter-book
+jupytext
+geopy
+kaleido
