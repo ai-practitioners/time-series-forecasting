@@ -327,3 +327,92 @@ def plot_sales_averages(dataframe, select_hierarchy, name=None):
     )
 
     return sales_fig.show()
+
+def plot_stores_inventory(dataframe):
+    '''
+        Generate an inventory heatmap to visualize product distribution among
+        stores.
+
+        Parameters:
+            dataframe (polars.DataFrame): Input DataFrame containing store
+            inventory data.
+
+        Returns:
+            None (Displays the heatmap using Plotly).
+    '''
+    
+    # get a list of all family names
+    all_family_names = (
+        dataframe
+        .select('family')
+        .unique()
+        .to_series()
+        .to_list()
+    )
+
+    # group the data by store number and get unique family names that each store is selling
+    grouped = (
+        dataframe
+        .group_by('store_nbr')
+        .agg(pl.col('family').alias('family_sold'))
+    )
+
+    # create a new column family_not_sold
+    grouped = grouped.with_columns(
+        # select family_sold and apply the following function
+        pl.col('family_sold')
+        
+        # function - create a list of items that are not in the family_sold list
+        .map_elements(lambda x: [item for item in all_family_names if item not in x])
+        
+        # assign a new name to the new column
+        .alias('family_not_sold')
+    )
+
+    # sort the dataframe by store number
+    grouped = grouped.sort('store_nbr')
+
+    # sorted list of store numbers
+    store_numbers = grouped['store_nbr'].to_list()
+    
+    # create a binary matrix indicating whether a store sells a family product
+    matrix = []
+    for family_list in grouped['family_sold']:
+        row = [1 if family_name in family_name else 0 for family_name in all_family_names]
+        matrix.append(row)
+    
+    # create the inventory heatmap
+    fam_invent_fig = go.Figure(
+    data=go.Heatmap(
+        z=matrix,
+        x=all_family_names,
+        y=store_numbers,
+        autocolorscale=True,
+        hoverongaps=False,
+        showscale=False
+        )
+    )
+
+    # customize the appearance of the heatmap
+    fam_invent_fig.update_xaxes(
+        title='Family Names',
+        tickangle=-45,
+    )
+
+    fam_invent_fig.update_yaxes(
+        title='Store Number',
+        type='category',
+        tickmode='array',
+        tickvals=store_numbers,
+        ticktext=store_numbers,
+        tickfont=dict(size=10),
+    )
+
+    fam_invent_fig.update_layout(
+        title='Inventory Heatmap (All Stores)',
+        template='plotly_dark',
+        height=800,
+    )
+
+    # return the heatmap
+    return fam_invent_fig.show()
