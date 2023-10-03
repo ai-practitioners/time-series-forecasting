@@ -8,10 +8,13 @@ from plotly.subplots import make_subplots
 
 def get_geo_coordinates(username, location_name, country_code_iso):
     '''
-        Retrieve latitude and longitude coordinates of a location using the GeoNames geocoder service.
+        Retrieve latitude and longitude coordinates of a location using the
+        GeoNames geocoder service.
 
-        This function queries the GeoNames geocoder service to obtain geographical information (latitude and longitude)
-        for a specified location name and country code ISO. To use this function, follow the the steps below:
+        This function queries the GeoNames geocoder service to obtain
+        geographical information (latitude and longitude)
+        for a specified location name and country code ISO. To use this
+        function, follow the the steps below:
         
         step 1: poetry add geopy
         step 2: sign up for an account ->  https://www.geonames.org/login
@@ -20,24 +23,37 @@ def get_geo_coordinates(username, location_name, country_code_iso):
 
         Args:
             username (str): Your GeoNames username for authentication.
-            location_name (str): The name of the location for which you want to obtain coordinates.
-            country_code_iso (str): The ISO country code (e.g., 'US' for the United States) of the location.
+            location_name (str): The name of the location for which you want to
+            obtain coordinates.
+            country_code_iso (str): The ISO country code
+            (e.g., 'US' for the United States) of the location.
 
         Returns:
-            tuple or None: A tuple containing latitude and longitude values as floats (lat, lng), or None if the location
-            is not found or if there is an error during the process.
+            tuple or None: A tuple containing latitude and longitude values as
+            floats (lat, lng), or None if the location is not found or if
+            there is an error during the process.
 
         Note:
-            - To use this function, you need to install the 'geopy' library by running 'poetry add geopy'.
-            - Ensure that you have signed up for a GeoNames account and completed the necessary steps mentioned in the docstring.
+            - To use this function, you need to install the 'geopy' library by
+              running 'poetry add geopy'.
+            - Ensure that you have signed up for a GeoNames account and
+            completed the necessary steps mentioned in the docstring.
 
         Example:
-            coordinates = get_geo_coordinates(username='your_username', location_name='New York', country_code_iso='US')
+            ```python
+            coordinates = get_geo_coordinates(
+                username='your_username',
+                location_name='New York',
+                country_code_iso='US'
+            )
+            
             if coordinates:
-                print(f'Coordinates: Latitude {coordinates[0]}, Longitude {coordinates[1]}')
+                print(
+                    f'Coordinates: Latitude {coordinates[0]}, Longitude {coordinates[1]}'
+                )
             else:
                 print('Location not found or error occurred.')
-    
+            ```
     '''
     
     try:
@@ -70,17 +86,25 @@ def get_geo_coordinates(username, location_name, country_code_iso):
     
 def plot_sales_averages(dataframe, select_hierarchy, name=None):
     '''
-        This function plots the sales averages for a given hierarchy (country, state, or city) from a provided dataframe.
+        This function plots the sales averages for a given hierarchy
+        (country, state, or city) from a provided dataframe.
 
         Parameters:
-            - dataframe (polars.DataFrame): The input dataframe containing sales data.
-            - select_hierarchy (str): The hierarchy level to aggregate data on. This can be 'country', 'state', or 'city'.
-            - name (str, optional): The specific name of the state or city to plot data for. This should be None when select_hierarchy is 'country'.
+            - dataframe (polars.DataFrame): The input dataframe
+              containing sales data.
+            - select_hierarchy (str): The hierarchy level to aggregate data on.
+              This can be 'country', 'state', or 'city'.
+            - name (str, optional): The specific name of the state or city to
+              plot data for. This should be None when select_hierarchy is
+              'country'.
 
         Raises:
-            ValueError: If 'name' is not None when 'select_hierarchy' is 'country'.
-            ValueError: If an invalid state name is provided when 'select_hierarchy' is 'state'.
-            ValueError: If an invalid city name is provided when 'select_hierarchy' is 'city'.
+            ValueError: If 'name' is not None when 'select_hierarchy'
+            is 'country'.
+            ValueError: If an invalid state name is provided when
+            'select_hierarchy' is 'state'.
+            ValueError: If an invalid city name is provided when
+            'select_hierarchy' is 'city'.
 
         Returns:
             None. The function directly plots the sales averages using Plotly.
@@ -416,3 +440,58 @@ def plot_stores_inventory(dataframe):
 
     # return the heatmap
     return fam_invent_fig.show()
+
+def plot_prod_count_per_store(dataframe):
+    '''
+        Visualizes the number of unique products sold by each store in a bar
+        chart.
+
+        Parameters:
+        - dataframe (pl.DataFrame): The Pandas DataFrame containing the
+          sales data.
+
+        Returns:
+        - go.Figure: A Plotly figure representing the bar chart.
+    '''
+    # create list to store results of store number and no. of products
+    store_numbers = []
+    num_products = []
+
+    # iterate over each unique store
+    for store in sorted(dataframe.select('store_nbr').unique().to_series().to_list()):
+        num_product = (
+            dataframe
+            # filter out the store
+            .filter(pl.col('store_nbr') == store)
+            # count the number of unique products sold
+            .select('family').n_unique()
+        )
+        
+        # append both results to lists
+        store_numbers.append(store)
+        num_products.append(num_product)
+        
+    # create a bar chart to visualize
+    store_and_product = go.Figure(
+        data=go.Bar(
+            x=store_numbers,
+            y=num_products
+        )
+    )
+
+    # bar chart customization
+    store_and_product.update_xaxes(
+        tickvals=store_numbers,
+        ticktext=store_numbers,
+    )
+
+    store_and_product.update_layout(
+        title='Number of products sold (All stores)',
+        xaxis_title='Store Number',
+        yaxis_title='Number of Products Sold',
+        template='plotly_dark',
+        xaxis=dict(showgrid=False),
+        yaxis=dict(showgrid=False)
+    )
+
+    return store_and_product.show()
