@@ -23,6 +23,7 @@ jupyter-book = "0.15.1"
 jupytext = "1.15.0"
 geopy = "^2.4.0"
 kaleido = "0.2.1"
+tsfresh = "^0.20.1"
 
 
 [build-system]
