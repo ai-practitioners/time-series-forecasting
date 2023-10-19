@@ -24,6 +24,8 @@ jupytext = "1.15.0"
 geopy = "^2.4.0"
 kaleido = "0.2.1"
 tsfresh = "^0.20.1"
+mlflow = "^2.7.1"
+lightgbm = "^4.1.0"
 
 
 [build-system]
