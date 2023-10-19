@@ -173,3 +173,6 @@ logs/
 
 # ydata reports
 reports/
+
+# brewfile
+Brewfile
