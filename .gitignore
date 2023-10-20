@@ -170,6 +170,7 @@ data/raw/
 
 #  log files
 logs/
+catboost_info/
 
 # ydata reports
 reports/
